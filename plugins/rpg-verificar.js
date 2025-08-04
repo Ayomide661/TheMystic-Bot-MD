@@ -2,51 +2,64 @@ import {createHash} from 'crypto';
 const Reg = /\|?(.*)([.|] *?)([0-9]*)$/i;
 
 const handler = async function(m, {conn, text, usedPrefix, command}) {
-  const datas = global;
-  const language = datas.db.data.users[m.sender].language || global.defaultLanguage;
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${language}.json`));
-  const translator = _translate.plugins.rpg_verify;
-
   const user = global.db.data.users[m.sender];
   const name2 = conn.getName(m.sender);
   const pp = await conn.profilePictureUrl(m.sender, 'image').catch((_) => global.imagen1);
-  
-  if (user.registered === true) throw `${translator.texto1[0]}\n*${usedPrefix}unreg* ${translator.texto1[1]}`;
-  if (!Reg.test(text)) throw `${translator.texto2[0]}: ${usedPrefix + command} ${translator.texto2[1]} ${usedPrefix + command} Shadow.18*`;
-  
+
+  // Error messages in English
+  const errors = {
+    alreadyRegistered: `You are already registered!\nUse *${usedPrefix}unreg* to unregister your account`,
+    invalidFormat: `Invalid format!\nExample: ${usedPrefix + command} Name.Age\nOr: ${usedPrefix + command} Name|Age`,
+    noName: 'Please enter your name',
+    noAge: 'Please enter your age',
+    nameTooLong: 'Name is too long (max 30 characters)',
+    ageTooHigh: 'Age is too high (max 100 years)',
+    ageTooLow: 'Age is too low (min 5 years)'
+  };
+
+  // Success message template
+  const successMessage = (name, age, sn) => `╭─「 *REGISTRATION SUCCESSFUL* 」
+│
+│ • Thank you for registering!
+│ • Here's your account info:
+│
+│ • Name: ${name}
+│ • Age: ${age} years
+│ 
+│ • Serial Number: 
+│ ${sn}
+│
+│ • You received:
+│ 10,000 Money 💰
+│ 10,000 Exp ⚡
+│
+╰───────────────`;
+
+  if (user.registered === true) throw errors.alreadyRegistered;
+  if (!Reg.test(text)) throw errors.invalidFormat;
+
   let [_, name, splitter, age] = text.match(Reg);
-  if (!name) throw translator.texto3;
-  if (!age) throw translator.texto5;
-  if (name.length >= 30) throw translator.texto6;
-  
+  if (!name) throw errors.noName;
+  if (!age) throw errors.noAge;
+  if (name.length >= 30) throw errors.nameTooLong;
+
   age = parseInt(age);
-  if (age > 100) throw translator.texto6;
-  if (age < 5) throw translator.texto7;
-  
+  if (age > 100) throw errors.ageTooHigh;
+  if (age < 5) throw errors.ageTooLow;
+
   user.name = name.trim();
   user.age = age;
   user.regTime = + new Date;
   user.registered = true;
-  
-  const sn = createHash('md5').update(m.sender).digest('hex');
-  const caption = `${translator.texto8[0]}
-${translator.texto8[1]}」
-${translator.texto8[2]}
-${translator.texto8[3]} ${name}
-${translator.texto8[4]} ${age} ${translator.texto8[5]}
-${translator.texto8[6]} 
-┃ ${sn}
-${translator.texto8[7]}
-${translator.texto8[8]} 
-${translator.texto8[9]}
-${translator.texto8[10]}
-${translator.texto8[11]}`;
 
-  await conn.sendFile(m.chat, pp, 'mystic.jpg', caption, m);
+  const sn = createHash('md5').update(m.sender).digest('hex');
   
+  // Send registration confirmation
+  await conn.sendFile(m.chat, pp, 'profile.jpg', successMessage(name, age, sn), m);
+
   // Reward for registering
-  global.db.data.users[m.sender].money += 10000;
-  global.db.data.users[m.sender].exp += 10000;
+  user.money += 10000;
+  user.exp += 10000;
 };
 
 handler.help = ['verify'];
