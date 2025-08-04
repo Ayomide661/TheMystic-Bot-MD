@@ -13,7 +13,7 @@ global.authFile = `MysticSession`;
 // m.isBaileys error marked as false is a temporary fix
 global.isBaileysFail = true;
 
-global.defaultLenguaje = 'es';
+global.defaultLenguaje = 'en';
 
 // Owners: [number, name (optional), isPrimaryOwner (optional)]
 global.owner = [
