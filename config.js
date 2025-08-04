@@ -17,7 +17,7 @@ global.defaultLenguaje = 'en';
 
 // Owners: [number, name (optional), isPrimaryOwner (optional)]
 global.owner = [
-  ['+2348108629978', '👑 Owner 👑', true]
+  ['2348108629978']
 ];
 
 // Superuser tags
