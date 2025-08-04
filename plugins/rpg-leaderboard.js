@@ -23,35 +23,50 @@ const handler = async (m, { conn, args, participants }) => {
 
   const len = Math.min(args[0] && !isNaN(args[0]) ? Math.max(parseInt(args[0]), 10) : 10, 100);
 
-  const adventurePhrases = tradutor.texto1;
-  const randomPhrase = adventurePhrases[Math.floor(Math.random() * adventurePhrases.length)];
+  // Improved header with ASCII art
+  const header = `╭━━━〘 ${'LEADERBOARD'.padEnd(15)}〙━━━⬣
+┃
+┃ 🏆 *Outstanding Adventurers*
+┃ 📅 ${new Date().toLocaleDateString()}
+┃ 👥 Total Users: ${users.length}
+┃`;
 
-  const getText = (list, prop, unit) =>
-    list.slice(0, len)
-      .map(({ jid, [prop]: val }, i) => {
-        const phoneNumber = jid?.split('@')[0] || 'Desconocido';
-        return `□ ${i + 1}. @${phoneNumber}\n□ wa.me/${phoneNumber}\n□ *${val} ${unit}*`;
-      })
-      .join('\n\n');
+  // Enhanced section template
+  const createSection = (title, icon, list, valueName, unit) => {
+    return `
+┣━━━〘 ${icon} ${title} 〙━━━⬣
+${list.slice(0, len).map((user, i) => {
+  const position = `${i+1}.`.padEnd(3);
+  const name = `@${user.jid.split('@')[0].padEnd(15)}`;
+  const value = `${user[valueName]} ${unit}`.padEnd(10);
+  const progress = createProgressBar(user[valueName]/list[0][valueName]);
+  
+  return `┃ ${position} ${name} ${value}\n┃   ${progress}`;
+}).join('\n')}`;
+  };
 
-  const body = `${tradutor.texto2[0]}\n□ ⚔️ ${randomPhrase} ⚔️\n\n` +
-    `${tradutor.texto2[1]} ${len} ${tradutor.texto2[7]}\n` +
-    `${tradutor.texto2[2]} ${sortedExp.findIndex(u => u.jid === m.sender) + 1} ${tradutor.texto2[3]} ${users.length}\n\n` +
-    `${getText(sortedExp, 'exp', tradutor.texto2[4])}\n\n` +
-    `${tradutor.texto2[1]} ${len} ${tradutor.texto2[8]}\n` +
-    `${tradutor.texto2[2]} ${sortedLim.findIndex(u => u.jid === m.sender) + 1} ${tradutor.texto2[3]} ${users.length}\n\n` +
-    `${getText(sortedLim, 'limit', tradutor.texto2[5])}\n\n` +
-    `${tradutor.texto2[1]} ${len} ${tradutor.texto2[9]}\n` +
-    `${tradutor.texto2[2]} ${sortedLevel.findIndex(u => u.jid === m.sender) + 1} ${tradutor.texto2[3]} ${users.length}\n\n` +
-    `${getText(sortedLevel, 'level', tradutor.texto2[6])}`.trim();
+  // Create progress bar function
+  const createProgressBar = (percentage) => {
+    const bars = 20;
+    const filled = Math.round(percentage * bars);
+    return `[${'█'.repeat(filled)}${'░'.repeat(bars - filled)}] ${Math.round(percentage*100)}%`;
+  };
+
+  // Build the complete message
+  const message = `${header}
+${createSection('TOP EXPERIENCE', '🌟', sortedExp, 'exp', 'EXP')}
+${createSection('TOP DIAMONDS', '💎', sortedLim, 'limit', 'DIAMONDS')}
+${createSection('TOP LEVELS', '🎚️', sortedLevel, 'level', 'LEVEL')}
+┃
+┣━〘 YOUR POSITION 〙━⬣
+┃ • EXP: #${sortedExp.findIndex(u => u.jid === m.sender) + 1}
+┃ • DIAMONDS: #${sortedLim.findIndex(u => u.jid === m.sender) + 1}
+┃ • LEVEL: #${sortedLevel.findIndex(u => u.jid === m.sender) + 1}
+┃
+╰━━━━━━━━━━━━━━━━━━━━⬣`.trim();
 
   await conn.sendMessage(m.chat, { 
-    text: body, 
-    mentions: conn.parseMention(body) 
+    text: message, 
+    mentions: conn.parseMention(message) 
   }, { quoted: m });
 };
-
-handler.help = ['leaderboard'];
-handler.tags = ['xp'];
-handler.command = ['leaderboard', 'lb'];
-export default handler;
