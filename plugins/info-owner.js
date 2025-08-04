@@ -1,16 +1,40 @@
 const handler = async (m, {conn, usedPrefix}) => {
- const datas = global
- const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
- const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
- const tradutor = _translate.plugins.info_creador
+  const doc = ['pdf', 'zip', 'vnd.openxmlformats-officedocument.presentationml.presentation', 
+              'vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+              'vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  const document = doc[Math.floor(Math.random() * doc.length)];
+  
+  const text = `
+🔮 *Bot Creator Information* 🔮
 
- const doc = ['pdf', 'zip', 'vnd.openxmlformats-officedocument.presentationml.presentation', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'vnd.openxmlformats-officedocument.wordprocessingml.document'];
- const document = doc[Math.floor(Math.random() * doc.length)];
- const text = `${tradutor.texto1[0]}\n\n${tradutor.texto1[1]}\n\n${tradutor.texto1[2]}\n\n${tradutor.texto1[3]}\n\n${tradutor.texto1[4]}\n\n${tradutor.texto1[5]}\n\n${tradutor.texto1[6]}\n\n${tradutor.texto1[7]}\n\n${tradutor.texto1[8]}\n\n${tradutor.texto1[9]}\n\n${tradutor.texto1[10]}\n\n${tradutor.texto1[11]}\n\n${tradutor.texto1[12]}\n\n${tradutor.texto1[13]}`.trim();
- const buttonMessage = {
+🤖 *Bot Name:* TheMystic-Bot-MD  
+👨‍💻 *Developer:* Bruno Sobrino  
+📝 *Description:* Advanced WhatsApp Bot with rich features  
+🌎 *GitHub:* https://github.com/BrunoSobrino/TheMystic-Bot-MD  
+📺 *YouTube:* https://www.youtube.com/channel/UCSTDMKjbm-EmEovkygX-lCA  
+
+💡 *Features:*
+- Multi-device support
+- Advanced AI capabilities
+- RPG game elements
+- Downloader tools
+- Sticker creator
+- And much more!
+
+📌 *Note:* This project is open source and constantly updated.
+
+⚙️ *Tech Stack:*
+- Node.js
+- Baileys
+- Various npm libraries
+
+🔧 *Support:* For any issues, please open a ticket on GitHub
+`.trim();
+
+  const buttonMessage = {
     'document': {url: `https://github.com/BrunoSobrino/TheMystic-Bot-MD`},
     'mimetype': `application/${document}`,
-    'fileName': `${tradutor.texto2[0]}`,
+    'fileName': `Official Bot Documentation`,
     'fileLength': 99999999999999,
     'pageCount': 200,
     'contextInfo': {
@@ -20,19 +44,22 @@ const handler = async (m, {conn, usedPrefix}) => {
         'mediaUrl': 'https://github.com/BrunoSobrino/TheMystic-Bot-MD',
         'mediaType': 2,
         'previewType': 'pdf',
-        'title': tradutor.texto2[1],
-        'body': wm,
-        'thumbnail': imagen1,
-        'sourceUrl': 'https://www.youtube.com/channel/UCSTDMKjbm-EmEovkygX-lCA'}},
+        'title': 'TheMystic Bot - Official Documentation',
+        'body': global.wm,
+        'thumbnail': global.imagen1,
+        'sourceUrl': 'https://www.youtube.com/channel/UCSTDMKjbm-EmEovkygX-lCA'
+      }
+    },
     'caption': text,
-    'footer': wm,
+    'footer': global.wm,
     'headerType': 6
- };
- conn.sendMessage(m.chat, buttonMessage, {quoted: m});
+  };
+  
+  conn.sendMessage(m.chat, buttonMessage, {quoted: m});
 };
 
 handler.help = ['owner'];
 handler.tags = ['info'];
-handler.command = /^(owner|creator|creador|propietario)$/i;
+handler.command = /^(owner|creator|dev|developer)$/i;
 
 export default handler;
