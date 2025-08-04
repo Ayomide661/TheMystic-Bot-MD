@@ -1237,7 +1237,19 @@ global.dfail = (type, m, conn) => {
     restrict: translator.texto10,
   }[type];
   const aa = { quoted: m, userJid: conn.user.jid };
-  const prep = generateWAMessageFromContent(m.chat, { extendedTextMessage: { text: msg, contextInfo: { externalAdReply: { title: translator.texto11[0], body: translator.texto11[1], thumbnail: imagen1, sourceUrl: translator.texto11[2] } } }, aa);
+  const prep = generateWAMessageFromContent(m.chat, { 
+  extendedTextMessage: { 
+    text: msg, 
+    contextInfo: { 
+      externalAdReply: { 
+        title: translator.texto11[0], 
+        body: translator.texto11[1], 
+        thumbnail: imagen1, 
+        sourceUrl: translator.texto11[2] 
+      } 
+    } 
+  }
+});  // Properly closed
 
   const chatPrim2 = global.db.data.chats[m.chat] || {};
   const normalizeJid2 = (jid) => jid?.replace(/[^0-9]/g, '');
