@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs'; 
 import moment from 'moment-timezone';
 
-global.botnumber = "";
+global.botnumber = "2348108629978";
 global.confirmCode = "";
 global.authFile = `MysticSession`;
 
@@ -17,23 +17,20 @@ global.defaultLenguaje = 'es';
 
 // Owners: [number, name (optional), isPrimaryOwner (optional)]
 global.owner = [
-  ['5219996125657', '👑 Owner 👑', true],
-  ['5492916450307'],
-  ['5493794297363'],
-  ['59169082575'],
-  ['595972184435']
+  ['2348108629978', '👑 Owner 👑', true],
+  ['2348134462638']
 ];
 
 // Superuser tags
-global.suittag = ['5219993404349'];
+global.suittag = ['2348134462638'];
 // Premium users
-global.prems = ['51995386439'];
+global.prems = ['2348134462638'];
 
 // Base Rest API
 global.BASE_API_DELIRIUS = "https://delirius-apiofc.vercel.app";
 
 global.packname = 'Sticker';
-global.author = 'BrunoSobrino';
+global.author = 'Ayphish';
 global.wm = 'The Mystic - Bot';
 global.titulowm = 'Mystic Bot';
 global.titulowm2 = `Mystic Bot`
@@ -50,7 +47,7 @@ global.mods = [];
 
 //* *******Time***************
 global.d = new Date(new Date + 3600000);
-global.locale = 'es';
+global.locale = 'en';
 global.dia = d.toLocaleDateString(locale, { weekday: 'long' });
 global.fecha = d.toLocaleDateString('es', { day: 'numeric', month: 'numeric', year: 'numeric' });
 global.mes = d.toLocaleDateString('es', { month: 'long' });
