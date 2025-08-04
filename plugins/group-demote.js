@@ -1,39 +1,58 @@
 const handler = async (m, {conn, usedPrefix, text}) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.gc_demote
+  const datas = global;
+  const language = datas.db.data.users[m.sender].language || global.defaultLanguage;
+  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${language}.json`));
+  const translator = _translate.plugins.gc_demote;
 
-  if (isNaN(text) && !text.match(/@/g)) {
-
+  // Parse target user
+  let number = '';
+  if (isNaN(text) && !text.includes('@')) {
+    // No valid number found
   } else if (isNaN(text)) {
-    var number = text.split`@`[1];
+    number = text.split('@')[1];
   } else if (!isNaN(text)) {
-    var number = text;
+    number = text;
   }
 
-  if (!text && !m.quoted) return conn.reply(m.chat, `${tradutor.texto1[0]} ${usedPrefix}quitaradmin @tag*\n*┠≽ ${usedPrefix}quitaradmin ${tradutor.texto1[1]}`, m);
-  if (number.length > 13 || (number.length < 11 && number.length > 0)) return conn.reply(m.chat, tradutor.texto2, m);
+  // Validate input
+  if (!text && !m.quoted) {
+    return conn.reply(m.chat, 
+      `${translator.texto1[0]} ${usedPrefix}demote @tag\n` +
+      `┠≽ ${usedPrefix}demote ${translator.texto1[1]}`,
+      m
+    );
+  }
+  
+  if (number.length > 13 || (number.length < 11 && number.length > 0)) {
+    return conn.reply(m.chat, translator.texto2, m);
+  }
 
   try {
+    let user;
     if (text) {
-      var user = number + '@s.whatsapp.net';
-    } else if (await m?.quoted?.sender) {
-      var user = await m?.quoted?.sender;
-    } else if (await m.mentionedJid) {
-      var user = number + '@s.whatsapp.net';
+      user = `${number}@s.whatsapp.net`;
+    } else if (m?.quoted?.sender) {
+      user = m.quoted.sender;
+    } else if (m.mentionedJid) {
+      user = `${number}@s.whatsapp.net`;
     }
-  } catch (e) {
-  } finally {
-    conn.groupParticipantsUpdate(m.chat, [user], 'demote');
-    conn.reply(m.chat, tradutor.texto3, m);
+
+    if (!user) throw new Error('No valid user specified');
+
+    // Perform demotion
+    await conn.groupParticipantsUpdate(m.chat, [user], 'demote');
+    await conn.reply(m.chat, translator.texto3, m);
+    
+  } catch (error) {
+    console.error('Demote error:', error);
+    await conn.reply(m.chat, translator.texto4 || 'Failed to demote user', m);
   }
 };
-handler.help = ['demote'].map((v) => 'mention ' + v);
+
+handler.help = ['demote @user'];
 handler.tags = ['group'];
-handler.command = /^(demote|quitarpoder|quitaradmin)$/i;
+handler.command = /^(demote|removeadmin|revoke)$/i;
 handler.group = true;
 handler.admin = true;
 handler.botAdmin = true;
-handler.fail = null;
 export default handler;
