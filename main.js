@@ -12,7 +12,7 @@ import lodash from 'lodash';
 import chalk from 'chalk';
 import syntaxerror from 'syntax-error';
 import { format } from 'util';
-import pino from ' 'pino';
+import pino from 'pino';
 import { Boom } from '@hapi/boom';
 import { makeWASocket, protoType, serialize } from './src/libraries/simple.js';
 import { initializeSubBots } from './src/libraries/subBotManager.js';
