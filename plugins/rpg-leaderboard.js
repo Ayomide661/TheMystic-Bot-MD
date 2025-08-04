@@ -4,6 +4,7 @@ const handler = async (m, { conn, args, participants }) => {
   const tradutor = _translate.plugins.rpg_leaderboard;
 
   const users = Object.entries(global.db.data.users)
+    .filter(([_, user]) => user.registered)
     .map(([key, value]) => ({
       ...value,
       jid: key,
