@@ -1,11 +1,3 @@
-// dla.js
-// Copyright (C) 2025 Weskerty
-//
-// Este programa se distribuye bajo los términos de la Licencia Pública General Affero de GNU (AGPLv3).
-// Usted puede usarlo, modificarlo y redistribuirlo bajo esa licencia.
-// Licencia completa: https://www.gnu.org/licenses/agpl-3.0.html
-// Cambio Actualizar Automaticamente.
-
 import fs from "fs";
 import path, { join, basename } from "path";
 import { exec } from "child_process";
@@ -19,7 +11,7 @@ const config = {
   tempDir: process.env.TEMP_DOWNLOAD_DIR || path.join(process.cwd(), 'src/tmp/YTDLP'),
   maxFileSize: (parseInt(process.env.MAX_UPLOAD, 10) * 1048576) || 1500000000,
   ytDlpPath: path.join(process.cwd(), 'src/tmp/YTDLP'),
-  maxConcurrent: parseInt(process.env.MAXSOLICITUD, 10) || 5,
+  maxConcurrent: parseInt(process.env.MAX_REQUESTS, 10) || 5,
   playlistLimit: parseInt(process.env.PLAYLIST_LIMIT, 10) || 10,
   cookiesFile: path.join(process.cwd(), 'src/tmp/YTDLP/cookies.txt')
 };
@@ -34,7 +26,7 @@ const ytDlpBinaries = new Map([
   ['default', 'yt-dlp'],
 ]);
 
-// Aqui se elige las banderas, Calidad de video etc. Ver documentacion yt-dlp 
+// Format selection flags - see yt-dlp documentation
 const formats = {
   video: '-f "sd/18/bestvideo[height<=720][vcodec*=h264]+bestaudio[acodec*=aac]/bestvideo[height<=720][vcodec*=h264]+bestaudio[acodec*=mp4a]/bestvideo[height<=720][vcodec*=h264]+bestaudio/bestvideo[height<=720]+bestaudio/bestvideo[vcodec*=h264]+bestaudio/bestvideo+bestaudio/best" --sponsorblock-mark all', 
   audio: '-f "ba/best" -x --audio-format mp3 --audio-quality 0',
@@ -112,8 +104,8 @@ const safeExecute = async (command, silentError = false) => {
     return result;
   } catch (error) {
     if (!silentError) {
-      console.error(`PLUGIN DLA Command: ${command}`);
-      console.error(`PLUGIN DLA Error: ${error.message}`);
+      console.error(`YTDLP Command: ${command}`);
+      console.error(`YTDLP Error: ${error.message}`);
       if (error.stdout) console.error(`Stdout: ${error.stdout}`);
       if (error.stderr) console.error(`Stderr: ${error.stderr}`);
     }
@@ -151,7 +143,7 @@ const detectYtDlpBinary = async (m) => {
 
   const fileName = detectYtDlpBinaryName();
   const filePath = path.join(config.ytDlpPath, fileName);
-  
+
   try {
     await fs.promises.access(filePath);
     return `${filePath}`;
@@ -168,17 +160,17 @@ const downloadYtDlp = async (m) => {
 
   try {
     await safeExecute(`curl -L -o "${filePath}" "${downloadUrl}"`);
-    
+
     if (os.platform() !== 'win32') {
       await fs.promises.chmod(filePath, '755');
     }
-    
+
     return `${filePath}`;
   } catch (error) {
     const { default: fetch } = await import('node-fetch');
-    
+
     const response = await fetch(downloadUrl);
-    if (!response.ok) throw new Error(`Descarga fallida: ${response.statusText}`);
+    if (!response.ok) throw new Error(`Download failed: ${response.statusText}`);
 
     const buffer = Buffer.from(await response.arrayBuffer());
     await fs.promises.writeFile(filePath, buffer);
@@ -195,17 +187,17 @@ const updateYtDlp = async (m, errorMsg = null) => {
   try {
     const ytDlpPath = await detectYtDlpBinary(m);
     const updateCommand = `${ytDlpPath} --update-to nightly`;
-    
+
     const result = await safeExecute(updateCommand);
-    
-    const updateOutput = result.stdout || result.stderr || 'yt-dlp actualizado exitosamente';
+
+    const updateOutput = result.stdout || result.stderr || 'yt-dlp updated successfully';
     const finalMsg = errorMsg ? `Stderr: ${errorMsg}\n\n${updateOutput}` : updateOutput;
     await m.reply(finalMsg);
-    
+
     return true;
   } catch (error) {
-    console.error(`PLUGIN DLA Update error: ${error.message}`);
-    const errorOutput = error.stdout || error.stderr || `Error al actualizar: ${error.message}`;
+    console.error(`YTDLP Update error: ${error.message}`);
+    const errorOutput = error.stdout || error.stderr || `Update error: ${error.message}`;
     const finalMsg = errorMsg ? `Stderr: ${errorMsg}\n\n${errorOutput}` : errorOutput;
     await m.reply(finalMsg);
     return false;
@@ -221,29 +213,29 @@ const uploadCookies = async (m, cookieText = null) => {
     } else if (m.quoted && m.quoted.fileSha256) {
       const media = await m.quoted.download();
       if (!media) {
-        await m.reply('Error al descargar el archivo de cookies');
+        await m.reply('Error downloading cookie file');
         return;
       }
       cookieContent = media.toString();
     } else {
-      await m.reply('Las cookies deben ser texto o archivo. Ver el tutorial aqui: https://youtu.be/KUk9nEf00_U');
+      await m.reply('Cookies must be provided as text or file. See tutorial here: https://youtu.be/KUk9nEf00_U');
       return;
     }
 
     await ensureDirectories();
     await fs.promises.writeFile(config.cookiesFile, cookieContent);
-    
-    await m.reply(`Cookies subidas exitosamente en ${config.cookiesFile}`);
+
+    await m.reply(`Cookies successfully uploaded to ${config.cookiesFile}`);
   } catch (error) {
-    console.error(`PLUGIN DLA Cookie upload error: ${error.message}`);
-    await m.reply(`Error subiendo cookies: ${error.message}`);
+    console.error(`YTDLP Cookie upload error: ${error.message}`);
+    await m.reply(`Error uploading cookies: ${error.message}`);
   }
 };
 
 const processDownloadedFile = async (m, filePath, originalFileName, isVideo = false) => {
   try {
     await fs.promises.access(filePath);
-    
+
     if (isVideo) {
       await conn.sendMessage(m.chat, { video: { url: filePath }, mimetype: "video/mp4" }, { quoted: m });
     } else {
@@ -252,7 +244,7 @@ const processDownloadedFile = async (m, filePath, originalFileName, isVideo = fa
 
     await fs.promises.unlink(filePath).catch(() => {});
   } catch (error) {
-    console.error(`PLUGIN DLA Error procesando archivo ${filePath}: ${error.message}`);
+    console.error(`YTDLP Error processing file ${filePath}: ${error.message}`);
     throw error;
   }
 };
@@ -271,7 +263,7 @@ const downloadWithYtDlp = async (m, urls, customOptions = '', enablePlaylist = f
       const outputTemplate = path.join(outputDir, '%(title).20s.%(ext)s');
       const playlistFlag = enablePlaylist ? formats.playlist : formats.noPlaylist;
       const playlistItemsFlag = enablePlaylist ? `--playlist-items 1:${config.playlistLimit}` : '';
-      
+
       const command = [
         ytDlpPath,
         `--max-filesize ${config.maxFileSize}`,
@@ -286,26 +278,26 @@ const downloadWithYtDlp = async (m, urls, customOptions = '', enablePlaylist = f
 
       try {
         await safeExecute(command);
-        
+
         const files = await fs.promises.readdir(outputDir);
-        
+
         for (const file of files) {
           const fullPath = path.join(outputDir, file);
-          
+
           try {
             await processDownloadedFile(m, fullPath, file, isVideo);
           } catch (processError) {
-            console.error(`PLUGIN DLA Error procesando archivo ${file}: ${processError.message}`);
+            console.error(`YTDLP Error processing file ${file}: ${processError.message}`);
           }
         }
       } catch (error) {
-        const errorMsg = error.stderr || error.message || 'Error desconocido';
+        const errorMsg = error.stderr || error.message || 'Unknown error';
         await updateYtDlp(m, errorMsg);
       }
     }
   } finally {
     await fs.promises.rm(outputDir, { recursive: true, force: true }).catch((err) => {
-      console.error(`PLUGIN DLA Error limpiando directorio temporal: ${err.message}`);
+      console.error(`YTDLP Error cleaning temp directory: ${err.message}`);
     });
   }
 };
@@ -314,16 +306,16 @@ const searchAndDownload = async (m, searchQuery, isVideo = false) => {
   const sessionId = `yt-dlp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const outputDir = path.join(config.tempDir, sessionId);
   const cookiesFlag = await buildCookiesFlag();
-  
+
   await ensureDirectories();
   await fs.promises.mkdir(outputDir, { recursive: true });
 
   try {
     const outputTemplate = path.join(outputDir, '%(title).20s.%(ext)s');
     const ytDlpPath = await detectYtDlpBinary(m);
-    
+
     const formatOptions = isVideo ? formats.video : formats.audio;
-    
+
     const searchSources = [
       { source: 'ytsearch', name: 'YouTube' },
       ...(isVideo ? [] : [
@@ -348,11 +340,11 @@ const searchAndDownload = async (m, searchQuery, isVideo = false) => {
           `-o "${outputTemplate}"`,
           `"${source}10:${searchQuery}"`
         ].filter(Boolean).join(' ');
-        
+
         await safeExecute(command);
 
         const files = await fs.promises.readdir(outputDir);
-        
+
         if (files.length > 0) {
           await Promise.all(
             files.map(file => processDownloadedFile(m, path.join(outputDir, file), file, isVideo))
@@ -361,35 +353,35 @@ const searchAndDownload = async (m, searchQuery, isVideo = false) => {
           break;
         }
       } catch (error) {
-        const errorMsg = error.stderr || error.message || 'Error desconocido';
+        const errorMsg = error.stderr || error.message || 'Unknown error';
         await updateYtDlp(m, errorMsg);
-        
+
         await fs.promises.rm(outputDir, { recursive: true, force: true }).catch(() => {});
         await fs.promises.mkdir(outputDir, { recursive: true });
       }
     }
 
     if (!success) {
-      console.error(`PLUGIN DLA No se encontraron resultados para ${searchQuery}`);
+      console.error(`YTDLP No results found for ${searchQuery}`);
     }
   } finally {
     await fs.promises.rm(outputDir, { recursive: true, force: true }).catch((err) => {
-      console.error(`PLUGIN DLA Error limpiando directorio temporal: ${err.message}`);
+      console.error(`YTDLP Error cleaning temp directory: ${err.message}`);
     });
   }
 };
 
 const handleRequest = async (m) => {
   const input = cleanCommand(m.text.trim());
-  
+
   if (!input) {
     await m.reply(
-      '> 🎶Buscar y descargar cancion:\n`dla` <consulta>\n' +
-      '> 🎥Buscar y descargar video:\n`dla vd` <consulta>\n' +
-      '> ⬇️Descargar todo tipo de media: \n`dla` <url> _YT-DLP FLAGS_ \n' +
-      '> 🎵Descargar todo el audio de playlist: \n`dla mp3` <url> \n' +
-      '> 🍪Cookies: https://youtu.be/KUk9nEf00_U \n' +
-      '> 🌐Mas informacion:\ngithub.com/yt-dlp/yt-dlp/blob/master/README.md#usage-and-options'
+      '> 🎶 Search and download audio:\n`dla` <query>\n' +
+      '> 🎥 Search and download video:\n`dla vd` <query>\n' +
+      '> ⬇️ Download any media: \n`dla` <url> _YT-DLP FLAGS_ \n' +
+      '> 🎵 Download playlist audio: \n`dla mp3` <url> \n' +
+      '> 🍪 Cookies: https://youtu.be/KUk9nEf00_U \n' +
+      '> 🌐 More info:\ngithub.com/yt-dlp/yt-dlp/blob/master/README.md#usage-and-options'
     );
     return;
   }
@@ -413,9 +405,9 @@ const handleRequest = async (m) => {
       }
       return;
     }
-    
-    await m.reply('Descargando!');
-    
+
+    await m.reply('Downloading!');
+
     if (!urls.length) {
       if (input.includes('://')) {
         const inputUrl = input.match(/(https?:\/\/[^\s]+)/)?.[1];
@@ -451,7 +443,7 @@ const handleRequest = async (m) => {
         break;
     }
   } catch (error) {
-    console.error(`PLUGIN DLA Error en comando dla: ${error.message}`);
+    console.error(`YTDLP Command error: ${error.message}`);
     await m.reply(`Error: ${error.message}`);
   }
 };
@@ -460,7 +452,7 @@ let handler = (m) => {
   return downloadQueue.add(() => handleRequest(m));
 };
 
-handler.help = ['dla [OPTIONS] URL', 'dla vd <consulta>', 'dla mp3 <url>', 'dla cookies [texto]'];
+handler.help = ['dla [OPTIONS] URL', 'dla vd <query>', 'dla mp3 <url>', 'dla cookies [text]'];
 handler.tags = ['tools'];
 handler.command = /^(dla)$/i;
 handler.owner = false;
