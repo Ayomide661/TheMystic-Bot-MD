@@ -19,8 +19,8 @@ import { initializeSubBots } from './src/libraries/subBotManager.js';
 import { Low, JSONFile } from 'lowdb';
 import store from './src/libraries/store.js';
 import LidResolver from './src/libraries/LidResolver.js';
-
-const { DisconnectReason, useMultiFileAuthState, fetchLatestBaileys 'readline';
+const { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion } = await import("baileys");
+import readline from 'readline';
 import NodeCache from 'node-cache';
 const { chain } = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
