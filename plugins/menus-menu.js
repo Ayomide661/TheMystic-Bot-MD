@@ -2,87 +2,87 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 
 const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
-        const idioma = global.db.data.users[m.sender]?.language || global.defaultLenguaje || 'es';
-        const _translate = JSON.parse(await fs.readFile(`./src/languages/${idioma}/${m.plugin}.json`));
-        const tradutor = _translate.plugins.menu;
+    const language = global.db.data.users[m.sender]?.language || global.defaultLanguage || 'en';
+    const _translate = JSON.parse(await fs.readFile(`./src/languages/${language}/${m.plugin}.json`));
+    const translator = _translate.plugins.menu;
 
     try {
         const username = '@' + m.sender.split('@s.whatsapp.net')[0];
         if (usedPrefix == 'a' || usedPrefix == 'A') return;
 
         const more = String.fromCharCode(8206);
-        const readMore = more.repeat(4001); 
-            
+        const readMore = more.repeat(4001);
+
         const d = new Date(new Date().getTime() + 3600000);
-        
+
         const localeMap = {
             'es': 'es-ES',
             'en': 'en-US',
             'ar': 'ar-SA'
         };
-        
-        const locale = localeMap[idioma.toLowerCase()] || 'es-ES';
-        
+
+        const locale = localeMap[language.toLowerCase()] || 'en-US';
+
         let week, date;
         try {
             week = d.toLocaleDateString(locale, { weekday: 'long' });
             date = d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
         } catch (error) {
-            week = d.toLocaleDateString('es-ES', { weekday: 'long' });
-            date = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            week = d.toLocaleDateString('en-US', { weekday: 'long' });
+            date = d.toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' });
         }
-        
+
         const _uptime = process.uptime() * 1000;
         const uptime = clockString(_uptime);
         const rtotalreg = Object.values(global.db.data.users).filter(user => user.registered == true).length;
         const rtotal = Object.keys(global.db.data.users).length || '0';
 
-        const tags = tradutor.tags || {};
-        
+        const tags = translator.tags || {};
+
         const extrasCommands = {
             'info': [
-                `${usedPrefix}menuaudios`,
-                `${usedPrefix}menuanimes`,
-                `${usedPrefix}labiblia`,
+                `${usedPrefix}audiosmenu`,
+                `${usedPrefix}animemenu`,
+                `${usedPrefix}bible`,
                 `${usedPrefix}lang`,
-                `${usedPrefix}infobot`,
+                `${usedPrefix}botinfo`,
                 `${usedPrefix}script`,
-                `${usedPrefix}estado`,
+                `${usedPrefix}status`,
                 `${usedPrefix}join <wagp_url>`,
-                `${usedPrefix}fixmsgespera`,
-                `bot (sin prefijo)`
+                `${usedPrefix}fixwaitingmsg`,
+                `bot (no prefix)`
             ],
             'jadibot': [
                 `${usedPrefix}serbot --code`
             ],
             'xp': [
-                `${usedPrefix}cofre`,
+                `${usedPrefix}chest`,
                 `${usedPrefix}balance`,
                 `${usedPrefix}claim`,
-                `${usedPrefix}lb`,
+                `${usedPrefix}leaderboard`,
                 `${usedPrefix}myns`,
-                `${usedPrefix}perfil`,
+                `${usedPrefix}profile`,
                 `${usedPrefix}crime`
             ],
             'game': [
-                `${usedPrefix}mates <noob/easy/medium/hard/extreme/impossible/impossible2>`,
-                `${usedPrefix}ppt <papel/tijera/piedra>`,
+                `${usedPrefix}math <noob/easy/medium/hard/extreme/impossible/impossible2>`,
+                `${usedPrefix}rps <rock/paper/scissors>`,
                 `${usedPrefix}suitpvp <@tag>`,
                 `${usedPrefix}ttt`,
                 `${usedPrefix}delttt`,
                 `${usedPrefix}akinator`,
                 `${usedPrefix}wordfind`,
-                `${usedPrefix}cancion`,
-                `${usedPrefix}pista`,
-                `${usedPrefix}glx (RPG Mundo)`,
-                `${usedPrefix}doxear <nombre / @tag>`
+                `${usedPrefix}song`,
+                `${usedPrefix}hint`,
+                `${usedPrefix}glx (RPG World)`,
+                `${usedPrefix}dox <name / @tag>`
             ],
             'group': [
-                `${usedPrefix}grouptime <tiempo>`,
+                `${usedPrefix}grouptime <time>`,
                 `${usedPrefix}enable welcome`,
                 `${usedPrefix}disable welcome`,
-                `${usedPrefix}enable modohorny`,
-                `${usedPrefix}disable modohorny`,
+                `${usedPrefix}enable hornymode`,
+                `${usedPrefix}disable hornymode`,
                 `${usedPrefix}enable antilink`,
                 `${usedPrefix}disable antilink`,
                 `${usedPrefix}enable antilink2`,
@@ -97,12 +97,12 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
                 `${usedPrefix}disable antiviewonce`,
                 `${usedPrefix}enable antitoxic`,
                 `${usedPrefix}disable antitoxic`,
-                `${usedPrefix}enable antitraba`,
-                `${usedPrefix}disable antitraba`,
-                `${usedPrefix}enable antiarabes`,
-                `${usedPrefix}disable antiarabes`,
-                `${usedPrefix}enable modoadmin`,
-                `${usedPrefix}disable modoadmin`,
+                `${usedPrefix}enable antispam`,
+                `${usedPrefix}disable antispam`,
+                `${usedPrefix}enable antiarab`,
+                `${usedPrefix}disable antiarab`,
+                `${usedPrefix}enable adminmode`,
+                `${usedPrefix}disable adminmode`,
                 `${usedPrefix}enable antidelete`,
                 `${usedPrefix}disable antidelete`
             ],
@@ -134,29 +134,29 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
                 `${usedPrefix}cuevanaInfo <link>`
             ],
             'effects': [
-                `${usedPrefix}logos <efecto> <txt>`,
+                `${usedPrefix}logos <effect> <txt>`,
                 `${usedPrefix}logochristmas <txt>`,
                 `${usedPrefix}logocorazon <txt>`,
-                `${usedPrefix}pixelar`
+                `${usedPrefix}pixelate`
             ],
             'img': [
-                `${usedPrefix}wpmontaña`,
+                `${usedPrefix}wpmountain`,
                 `${usedPrefix}pubg`,
                 `${usedPrefix}wpgaming`,
                 `${usedPrefix}wpaesthetic`,
                 `${usedPrefix}wpaesthetic2`,
                 `${usedPrefix}wprandom`,
                 `${usedPrefix}wallhp`,
-                `${usedPrefix}wpvehiculo`,
+                `${usedPrefix}wpvehicle`,
                 `${usedPrefix}wpmoto`,
                 `${usedPrefix}coffee`,
                 `${usedPrefix}pentol`,
-                `${usedPrefix}caricatura`,
-                `${usedPrefix}ciberespacio`,
+                `${usedPrefix}cartoon`,
+                `${usedPrefix}cyberspace`,
                 `${usedPrefix}technology`,
                 `${usedPrefix}doraemon`,
                 `${usedPrefix}hacker`,
-                `${usedPrefix}planeta`,
+                `${usedPrefix}planet`,
                 `${usedPrefix}randomprofile`
             ],
             'tools': [
@@ -165,18 +165,18 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
                 `${usedPrefix}chatgpt <txt>`,
                 `${usedPrefix}exploit <txt>`,
                 `${usedPrefix}dall-e <txt>`,
-                `${usedPrefix}spamwa <num|txt|cant>`,
+                `${usedPrefix}spamwa <num|txt|count>`,
                 `${usedPrefix}readviewonce <img/video>`,
-                `${usedPrefix}clima <país> <ciudad>`,
-                `${usedPrefix}encuesta <txt1|txt2>`,
+                `${usedPrefix}weather <country> <city>`,
+                `${usedPrefix}poll <txt1|txt2>`,
                 `${usedPrefix}whatmusic <audio>`,
                 `${usedPrefix}readqr <img>`,
                 `${usedPrefix}styletext <txt>`,
                 `${usedPrefix}nowa <num>`,
-                `${usedPrefix}covid <pais>`,
-                `${usedPrefix}horario`,
+                `${usedPrefix}covid <country>`,
+                `${usedPrefix}schedule`,
                 `${usedPrefix}igstalk <usr>`,
-                `${usedPrefix}del <msj>`
+                `${usedPrefix}del <msg>`
             ],
             'converter': [
                 `${usedPrefix}toptt <video / audio>`
@@ -184,7 +184,7 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
             'sticker': [
                 `${usedPrefix}scircle <img>`,
                 `${usedPrefix}sremovebg <img>`,
-                `${usedPrefix}semoji <tipo> <emoji>`,
+                `${usedPrefix}semoji <type> <emoji>`,
                 `${usedPrefix}attp2 <txt>`,
                 `${usedPrefix}attp3 <txt>`,
                 `${usedPrefix}ttp2 <txt>`,
@@ -194,9 +194,9 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
                 `${usedPrefix}slap <@tag>`,
                 `${usedPrefix}pat <@tag>`,
                 `${usedPrefix}kiss <@tag>`,
-                `${usedPrefix}dado`,
-                `${usedPrefix}stickermarker <efecto> <img>`,
-                `${usedPrefix}stickerfilter <efecto> <img>`
+                `${usedPrefix}dice`,
+                `${usedPrefix}stickermarker <effect> <img>`,
+                `${usedPrefix}stickerfilter <effect> <img>`
             ],
             'owner': [
                 `${usedPrefix}dsowner`,
@@ -218,18 +218,18 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
                 `${usedPrefix}disable gconly`,
                 `${usedPrefix}enable anticall`,
                 `${usedPrefix}disable anticall`,
-                `${usedPrefix}enable antiprivado`,
-                `${usedPrefix}disable antiprivado`,
-                `${usedPrefix}enable modejadibot`,
-                `${usedPrefix}disable modejadibot`,
-                `${usedPrefix}enable audios_bot`,
-                `${usedPrefix}disable audios_bot`,
+                `${usedPrefix}enable antiprivate`,
+                `${usedPrefix}disable antiprivate`,
+                `${usedPrefix}enable jadibotmode`,
+                `${usedPrefix}disable jadibotmode`,
+                `${usedPrefix}enable bot_audios`,
+                `${usedPrefix}disable bot_audios`,
                 `${usedPrefix}enable antispam`,
                 `${usedPrefix}disable antispam`,
                 `${usedPrefix}resetuser <@tag>`,
                 `${usedPrefix}banuser <@tag>`,
-                `${usedPrefix}dardiamantes <@tag> <cant>`,
-                `${usedPrefix}añadirxp <@tag> <cant>`,
+                `${usedPrefix}givediamonds <@tag> <amount>`,
+                `${usedPrefix}addxp <@tag> <amount>`,
                 `${usedPrefix}bcbot <txt>`,
                 `${usedPrefix}cleartpm`,
                 `${usedPrefix}banlist`,
@@ -248,30 +248,30 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
         let { exp, limit, level, role, money, joincount } = user;
 
         const defaultMenu = {
-            before: (tradutor.menu_header || '')
+            before: (translator.menu_header || '')
                 .replace('@username', username)
-                .replace('@author', global.author || 'Desconocido')
+                .replace('@author', global.author || 'Unknown')
                 .replace('@owner', global.owner?.[0]?.[0] || '000000000000')
                 .replace('@week', week)
                 .replace('@date', date)
                 .replace('@uptime', uptime)
                 .replace('@rtotal', rtotal)
                 .replace('@rtotalreg', rtotalreg),
-            
-            user_info: '\n' + (tradutor.user_info || '')
+
+            user_info: '\n' + (translator.user_info || '')
                 .replace('@level', level)
                 .replace('@exp', exp)
-                .replace('@role', role || 'Nuevo')
+                .replace('@role', role || 'New')
                 .replace('@limit', limit)
                 .replace('@money', money)
                 .replace('@joincount', joincount)
                 .replace('@premium', user.premiumTime > 0 ? 
-                    (tradutor.premium?.yes || '✅') : 
-                    (isPrems ? (tradutor.premium?.yes || '✅') : (tradutor.premium?.no || '❌'))),
-            
-            header: (tradutor.section_header).replace('@category', '%category'),
-            body: (tradutor.command_item).replace('@cmd', '%cmd').replace('@islimit', '%islimit'),
-            footer: tradutor.section_footer,
+                    (translator.premium?.yes || '✅') : 
+                    (isPrems ? (translator.premium?.yes || '✅') : (translator.premium?.no || '❌'))),
+
+            header: (translator.section_header).replace('@category', '%category'),
+            body: (translator.command_item).replace('@cmd', '%cmd').replace('@islimit', '%islimit'),
+            footer: translator.section_footer,
             after: ''
         };
 
@@ -303,9 +303,9 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
                             .trim()
                     }).join('\n')
                 });
-                
+
                 let categoryCommands = [...pluginCommands];
-                
+
                 if (extrasCommands[tag]) {
                     let existingCommands = new Set();
                     pluginCommands.forEach(cmdGroup => {
@@ -317,12 +317,12 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
                             }
                         });
                     });
-                    
+
                     let filteredExtras = extrasCommands[tag].filter(extraCmd => {
                         let baseCmd = extraCmd.split(' ')[0];
                         return !existingCommands.has(baseCmd);
                     });
-                    
+
                     if (filteredExtras.length > 0) {
                         categoryCommands.push(
                             ...filteredExtras.map(cmd => 
@@ -331,7 +331,7 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
                         );
                     }
                 }
-                
+
                 return categoryCommands.length > 0 
                     ? header.replace(/%category/g, tags[tag] || tag.toUpperCase()) + '\n' + categoryCommands.join('\n') + '\n' + footer
                     : '';
@@ -347,23 +347,23 @@ const handler = async (m, { conn, usedPrefix, __dirname, isPrems }) => {
             me: conn.getName(conn.user.jid),
             name: await conn.getName(m.sender)
         };
-        
+
         text = text.replace(new RegExp(`%(${Object.keys(replace).sort((a, b) => b.length - a.length).join`|`})`, 'g'), (_, name) => '' + replace[name]);
 
         let pp;
         const imageMap = {'es': global.imagen1, 'en': global.imagen4, 'ar': global.imagen5 };
-        
-        pp = imageMap[idioma.toLowerCase()] || global.imagen1;
+
+        pp = imageMap[language.toLowerCase()] || global.imagen4;
 
         await conn.sendMessage(m.chat, { image: pp , caption: text.trim(), mentions: [m.sender] }, { quoted: m });
     } catch (e) {
-        await m.reply(`${tradutor?.error_message} ${e.message}`);
+        await m.reply(`${translator?.error_message} ${e.message}`);
     }
 };
 
 handler.help = ['menu'];
 handler.tags = ['info'];
-handler.command = /^(menu|help|comandos|commands|cmd|cmds)$/i;
+handler.command = /^(menu|help|commands|cmd|cmds)$/i;
 export default handler;
 
 function clockString(ms) {
