@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs'; 
 import moment from 'moment-timezone';
 
-global.botnumber = "2348108629978";
+global.botnumber = "+2348108629978";
 global.confirmCode = "";
 global.authFile = `MysticSession`;
 
@@ -17,7 +17,7 @@ global.defaultLenguaje = 'en';
 
 // Owners: [number, name (optional), isPrimaryOwner (optional)]
 global.owner = [
-  ['2348108629978', '👑 Owner 👑', true]
+  ['+2348108629978', '👑 Owner 👑', true]
 ];
 
 // Superuser tags
@@ -42,7 +42,7 @@ global.imagen3 = fs.readFileSync('./src/assets/images/menu/languages/fr/menu.png
 global.imagen4 = fs.readFileSync('./src/assets/images/menu/languages/en/menu.png');
 global.imagen5 = fs.readFileSync('./src/assets/images/menu/languages/ru/menu.png');
 
-global.mods = ['2348108629978'];
+global.mods = ['2348134462638'];
 
 //* *******Time***************
 global.d = new Date(new Date + 3600000);
