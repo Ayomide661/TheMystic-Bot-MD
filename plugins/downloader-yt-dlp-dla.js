@@ -376,7 +376,7 @@ const handleRequest = async (m) => {
 
   if (!input) {
     await m.reply(
-      '> 🎶 Search and download audio:\n`dla` <query>\n' +
+      '> 🎧 Search and download audio:\n`dla` <query>\n' +
       '> 🎥 Search and download video:\n`dla vd` <query>\n' +
       '> ⬇️ Download any media: \n`dla` <url> _YT-DLP FLAGS_ \n' +
       '> 🎵 Download playlist audio: \n`dla mp3` <url> \n' +
