@@ -13,13 +13,15 @@ import chalk from 'chalk';
 import syntaxerror from 'syntax-error';
 import { format } from 'util';
 import pino from 'pino';
+import Pino from 'pino';
 import { Boom } from '@hapi/boom';
 import { makeWASocket, protoType, serialize } from './src/libraries/simple.js';
 import { initializeSubBots } from './src/libraries/subBotManager.js';
 import { Low, JSONFile } from 'lowdb';
 import store from './src/libraries/store.js';
 import LidResolver from './src/libraries/LidResolver.js';
-const { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion } = await import("baileys");
+
+const { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, PHONENUMBER_MCC } = await import("baileys");
 import readline from 'readline';
 import NodeCache from 'node-cache';
 const { chain } = lodash;
@@ -38,7 +40,7 @@ global.__filename = function filename(pathURL = import.meta.url, rmPrefix = plat
 }; global.__require = function require(dir = import.meta.url) {
   return createRequire(dir);
 };
-global.API = (name, path =queryname ? '?' + new URLSearchParams(Object.entries({ ...query, ...(apikeyqueryname ? { [apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name] } : {}) })) : '');
+global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({ ...query, ...(apikeyqueryname ? { [apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name] } : {}) })) : '');
 global.timestamp = { start: new Date };
 global.videoList = [];
 global.videoListXXX = [];
@@ -49,7 +51,39 @@ global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(op
 
 global.loadDatabase = async function loadDatabase() {
   if (global.db.READ) {
-    return new Promise((resolve)g;
+    return new Promise((resolve) => setInterval(async function () {
+      if (!global.db.READ) {
+        clearInterval(this);
+        resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
+      }
+    }, 1 * 1000));
+  }
+  if (global.db.data !== null) return;
+  global.db.READ = true;
+  await global.db.read().catch(console.error);
+  global.db.READ = null;
+  global.db.data = {
+    users: {},
+    chats: {},
+    stats: {},
+    msgs: {},
+    sticker: {},
+    settings: {},
+    ...(global.db.data || {}),
+  };
+  global.db.chain = chain(global.db.data);
+};
+loadDatabase();
+
+/* ------------------------------------------------*/
+
+/**
+ * Process text to resolve LIDs in mentions (@)
+ */
+async function processTextMentions(text, groupId) {
+  if (!text || !groupId || !text.includes('@')) return text;
+
+  const mentionRegex = /@(\d{8,20})/g;
   const mentions = [...text.matchAll(mentionRegex)];
 
   if (!mentions.length) return text;
@@ -74,7 +108,7 @@ global.loadDatabase = async function loadDatabase() {
 }
 
 /**
- * Intercepts and processes messages before the handler
+ * Intercept and process messages before the handler
  */
 async function interceptMessages(messages) {
   if (!Array.isArray(messages)) return messages;
@@ -99,7 +133,23 @@ let phoneNumber = global.botnumber || process.argv.find(arg => arg.startsWith('-
 const methodCodeQR = process.argv.includes('--method=qr');
 const methodCode = !!phoneNumber || process.argv.includes('--method=code');
 const MethodMobile = process.argv.includes("mobile");
-const rl = readline.createInterface({ input2xvc2luZyBvcGVuIHNlc3Npb24=",
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const question = (texto) => new Promise((resolver) => rl.question(texto, resolver));
+
+let opcion;
+if (methodCodeQR) opcion = '1';
+if (!methodCodeQR && !methodCode && !fs.existsSync(`./${global.authFile}/creds.json`)) {
+  do {
+    opcion = await question('[ ℹ️ ] Select an option:\n1. With QR code\n2. With 8-digit text code\n---> ');
+    if (!/^[1-2]$/.test(opcion)) {
+      console.log('[ ❗ ] Please select only 1 or 2.\n');
+    }
+  } while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${global.authFile}/creds.json`));
+}
+
+const filterStrings = [
+  "Q2xvc2luZyBzdGFsZSBvcGVu",
+  "Q2xvc2luZyBvcGVuIHNlc3Npb24=",
   "RmFpbGVkIHRvIGRlY3J5cHQ=",
   "U2Vzc2lvbiBlcnJvcg==",
   "RXJyb3I6IEJhZCBNQUM=",
@@ -126,9 +176,9 @@ process.on('uncaughtException', (err) => {
 
 const connectionOptions = {
   logger: pino({ level: 'silent' }),
-  printQRInTerminal: option == '1' ? true : methodCodeQR ? true : false,
+  printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
   mobile: MethodMobile,
-  browser: option === '1' ? ['TheMystic-Bot-MD', 'Safari', '2.0.0'] : methodCodeQR ? ['TheMystic-Bot-MD', 'Safari', '2.0.0'] : ['Ubuntu', 'Chrome', '20.0.04'],
+  browser: opcion === '1' ? ['TheMystic-Bot-MD', 'Safari', '2.0.0'] : methodCodeQR ? ['TheMystic-Bot-MD', 'Safari', '2.0.0'] : ['Ubuntu', 'Chrome', '20.0.04'],
   auth: {
     creds: state.creds,
     keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
@@ -158,33 +208,33 @@ global.conn = makeWASocket(connectionOptions);
 global.lidResolver = new LidResolver(global.conn);
 
 if (!fs.existsSync(`./${global.authFile}/creds.json`)) {
-  if (option === '2' || methodCode) {
-    option = '2';
+  if (opcion === '2' || methodCode) {
+    opcion = '2';
     if (!conn.authState.creds.registered) {
       if (MethodMobile) throw new Error('Cannot use pairing code with mobile API');
 
-      let phoneNum;
+      let numeroTelefono;
       if (!!phoneNumber) {
-        phoneNum = phoneNumber.replace(/[^0-9]/g, '');
-        if (!Object.keys(PHONENUMBER_MCC).some(v => phoneNum.startsWith(v))) {
-          console.log(chalk.bgBlack(chalk.bold.redBright("Start with your WhatsApp number's country code.\nExample: +5219992095479\n")));
+        numeroTelefono = phoneNumber.replace(/[^0-9]/g, '');
+        if (!Object.keys(PHONENUMBER_MCC).some(v => numeroTelefono.startsWith(v))) {
+          console.log(chalk.bgBlack(chalk.bold.redBright("Start with your WhatsApp country code.\nExample: +5219992095479\n")));
           process.exit(0);
         }
       } else {
         while (true) {
-          phoneNum = await question(chalk.bgBlack(chalk.bold.yellowBright('Please enter your WhatsApp number.\nExample: +5219992095479\n')));
-          phoneNum = phoneNum.replace(/[^0-9]/g, '');
-          if (phoneNum.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some(v => phoneNum.startsWith(v))) break;
+          numeroTelefono = await question(chalk.bgBlack(chalk.bold.yellowBright('Please enter your WhatsApp number.\nExample: +5219992095479\n')));
+          numeroTelefono = numeroTelefono.replace(/[^0-9]/g, '');
+          if (numeroTelefono.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some(v => numeroTelefono.startsWith(v))) break;
           console.log(chalk.bgBlack(chalk.bold.redBright("Please enter your WhatsApp number.\nExample: +5219992095479.\n")));
         }
         rl.close();
       }
 
       setTimeout(async () => {
-        let code = await conn.requestPairingCode(phoneNum);
-        code = code?.match(/.{1,4}/g)?.join("-") || code;
-        console.log(chalk.yellow('[ ℹ️ ] Enter the pairing code in WhatsApp.'));
-        console.log(chalk.black(chalk.bgGreen(`Your pairing code: `)), chalk.black(chalk.white(code)));
+        let codigo = await conn.requestPairingCode(numeroTelefono);
+        codigo = codigo?.match(/.{1,4}/g)?.join("-") || codigo;
+        console.log(chalk.yellow('[ ℹ️ ] enter the pairing code in WhatsApp.'));
+        console.log(chalk.black(chalk.bgGreen(`Your pairing code: `)), chalk.black(chalk.white(codigo)));
       }, 3000);
     }
   }
@@ -226,7 +276,7 @@ function deleteCoreFiles(filePath) {
   if (coreFilePattern.test(filename)) {
     fs.unlink(filePath, (err) => {
       if (err) console.error(`Error deleting file ${filePath}:`, err);
-      else console.log(`File deleted: ${filePath}`);
+      else console.log(`Deleted file: ${filePath}`);
     });
   }
 }
@@ -241,21 +291,21 @@ fs.watch(dirToWatchccc, (eventType, filename) => {
 
 function purgeSession() {
   let prekey = [];
-  let directory = readdirSync("./MysticSession");
-  let filesFolderPreKeys = directory.filter(file => file.startsWith('pre-key-'));
+  let directorio = readdirSync("./MysticSession");
+  let filesFolderPreKeys = directorio.filter(file => file.startsWith('pre-key-'));
   prekey = [...prekey, ...filesFolderPreKeys];
   filesFolderPreKeys.forEach(files => unlinkSync(`./MysticSession/${files}`));
 }
 
 function purgeSessionSB() {
   try {
-    let directoryList = readdirSync('./jadibts/');
+    let listaDirectorios = readdirSync('./jadibts/');
     let SBprekey = [];
-    directoryList.forEach(directory => {
-      if (statSync(`./jadibts/${directory}`).isDirectory()) {
-        let DSBPreKeys = readdirSync(`./jadibts/${directory}`).filter(fileInDir => fileInDir.startsWith('pre-key-'));
+    listaDirectorios.forEach(directorio => {
+      if (statSync(`./jadibts/${directorio}`).isDirectory()) {
+        let DSBPreKeys = readdirSync(`./jadibts/${directorio}`).filter(fileInDir => fileInDir.startsWith('pre-key-'));
         SBprekey = [...SBprekey, ...DSBPreKeys];
-        DSBPreKeys.forEach(fileInDir => unlinkSync(`./jadibts/${directory}/${fileInDir}`));
+        DSBPreKeys.forEach(fileInDir => unlinkSync(`./jadibts/${directorio}/${fileInDir}`));
       }
     });
   } catch (err) {
@@ -299,7 +349,7 @@ async function connectionUpdate(update) {
   }
   if (global.db.data == null) loadDatabase();
   if (update.qr != 0 && update.qr != undefined || methodCodeQR) {
-    if (option == '1' || methodCodeQR) {
+    if (opcion == '1' || methodCodeQR) {
       console.log(chalk.yellow('[ㅤℹ️ㅤㅤ] Scan the QR code.'));
       qrAlreadyShown = true;
       if (qrTimeout) clearTimeout(qrTimeout);
@@ -307,14 +357,14 @@ async function connectionUpdate(update) {
     }
   }
   if (connection == 'open') {
-    console.log(chalk.yellow('[ㅤℹ️ㅤㅤ] Connected successfully.'));
+    console.log(chalk.yellow('[ㅤℹ️ㅤㅤ] Successfully connected.'));
     isFirstConnection = true;
     if (!global.subBotsInitialized) {
       global.subBotsInitialized = true;
       try {
         await initializeSubBots();
       } catch (error) {
-        console.error(chalk.red('[ ❗ ] Error while initializing sub-bots:'), error);
+        console.error(chalk.red('[ ❗ ] Error initializing sub-bots:'), error);
       }
     }
   }
@@ -334,13 +384,13 @@ async function connectionUpdate(update) {
   }
   if (reason == 405) {
     await fs.unlinkSync("./MysticSession/" + "creds.json");
-    console.log(chalk.bold.redBright(`[ ⚠ ] Connection replaced, please wait a moment I will restart...\nIf errors appear, restart with : npm start`));
+    console.log(chalk.bold.redBright(`[ ⚠ ] Connection replaced, please wait a moment while I restart...\nIf errors appear, start again with: npm start`));
     process.send('reset');
   }
   if (connection === 'close') {
     if (reason === DisconnectReason.badSession) {
       if (shouldLogError('badSession')) {
-        conn.logger.error(`[ ⚠ ] Incorrect session, please delete the folder ${global.authFile} and scan again.`);
+        conn.logger.error(`[ ⚠ ] Incorrect session, please delete the ${global.authFile} folder and scan again.`);
       }
       await global.reloadHandler(true).catch(console.error);
     } else if (reason === DisconnectReason.connectionClosed) {
@@ -360,7 +410,7 @@ async function connectionUpdate(update) {
       await global.reloadHandler(true).catch(console.error);
     } else if (reason === DisconnectReason.loggedOut) {
       if (shouldLogError('loggedOut')) {
-        conn.logger.error(`[ ⚠ ] Connection closed, please delete the folder ${global.authFile} and scan again.`);
+        conn.logger.error(`[ ⚠ ] Connection closed, please delete the ${global.authFile} folder and scan again.`);
       }
     } else if (reason === DisconnectReason.restartRequired) {
       if (isFirstConnection) {
@@ -376,13 +426,13 @@ async function connectionUpdate(update) {
       }
     } else if (reason === DisconnectReason.timedOut) {
       if (shouldLogError('timedOut')) {
-        conn.logger.warn(`[ ⚠ ] Connection timeout, reconnecting...`);
+        conn.logger.warn(`[ ⚠ ] Connection timed out, reconnecting...`);
       }
       await global.reloadHandler(true).catch(console.error);
     } else {
       const unknownError = `unknown_${reason || ''}_${connection || ''}`;
       if (shouldLogError(unknownError)) {
-        conn.logger.warn(`[ ⚠ ] Unknown disconnect reason. ${reason || ''}: ${connection || ''}`);
+        conn.logger.warn(`[ ⚠ ] Unknown disconnection reason. ${reason || ''}: ${connection || ''}`);
       }
       await global.reloadHandler(true).catch(console.error);
     }
@@ -426,16 +476,55 @@ global.reloadHandler = async function (restatConn) {
   conn.bye = '👋 Goodbye!\n@user';
   conn.spromote = '*[ ℹ️ ] @user was promoted to admin.*';
   conn.sdemote = '*[ ℹ️ ] @user was demoted from admin.*';
-  conn.sDesc = '*[ ℹ️ ] The group description has been changed.*';
-  conn.sSubject = '*[ ℹ️ ] The group name has been changed.*';
-  conn.sIcon = '*[ ℹ️ ] The group profile photo has been changed.*';
-  conn.sRevoke = '*[ ℹ️ ] The group invite link has been reset.*';
+  conn.sDesc = '*[ ℹ️ ] The group description has been modified.*';
+  conn.sSubject = '*[ ℹ️ ] The group name has been modified.*';
+  conn.sIcon = '*[ ℹ️ ] The group profile picture has been changed.*';
+  conn.sRevoke = '*[ ℹ️ ] The group invitation link has been reset.*';
 
   const originalHandler = handler.handler.bind(global.conn);
   conn.handler = async function (chatUpdate) {
     try {
       if (chatUpdate.messages) {
         chatUpdate.messages = await interceptMessages(chatUpdate.messages);
+
+
+        /** Start of button configuration
+        const msg = chatUpdate.messages[0]
+        const body =
+          msg?.message?.buttonsResponseMessage?.selectedButtonId ||
+          msg?.message?.templateButtonReplyMessage?.selectedId ||
+          msg?.message?.conversation ||
+          msg?.message?.extendedTextMessage?.text
+
+
+        console.log(body)
+
+        switch (body) {
+          case 'glx_start_game':
+            console.log(`ENTROUUUUU`)
+        
+            await conn.sendMessage(msg.key.remoteJid, {
+              text: `
+              
+🛠️ *We are working to improve the GLX game!*
+
+In the meantime, use the command below to return to the start of the game:
+
+✨ *.glx*
+
+We appreciate your patience and support. 🚀
+`,
+              footer: 'Game GLX',
+              buttons: [
+                { buttonId: 'glx_start_game', buttonText: { displayText: '🔍 Start' }, type: 1 }
+              ],
+              headerType: 1
+            })
+            break
+        }
+
+*/
+        // ----------------------------------
 
         for (const message of chatUpdate.messages) {
           if (message?.message && message.key?.remoteJid?.endsWith('@g.us')) {
@@ -560,7 +649,7 @@ setInterval(async () => {
   if (stopped === 'close' || !conn || !conn?.user) return;
   const _uptime = process.uptime() * 1000;
   const uptime = clockString(_uptime);
-  const bio = `• Uptime: ${uptime} | TheMystic-Bot-MD`;
+  const bio = `• Active: ${uptime} | TheMystic-Bot-MD`;
   await conn?.updateProfileStatus(bio).catch((_) => _);
 }, 60000);
 
@@ -572,7 +661,7 @@ function clockString(ms) {
   return [d, 'd ️', h, 'h ', m, 'm ', s, 's '].map((v) => v.toString().padStart(2, 0)).join('');
 }
 
-// Ensure saving on exit
+// Ensure save on exit
 process.on('exit', () => {
   if (global.lidResolver?.isDirty) {
     global.lidResolver.forceSave();
@@ -580,7 +669,7 @@ process.on('exit', () => {
 });
 
 process.on('SIGINT', () => {
-  console.log('\n📁 Saving LID cache before exit...');
+  console.log('\n📁 Saving LID cache before exiting...');
   if (global.lidResolver?.isDirty) {
     global.lidResolver.forceSave();
   }
