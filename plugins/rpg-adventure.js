@@ -1,7 +1,6 @@
 import fetch from 'node-fetch';
 
-
-const cooldown = 1500000; // 25 minutos
+const cooldown = 1500000; // 25 minutes
 const handler = async (m, {usedPrefix, conn}) => {
   const datas = global
   const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
@@ -10,283 +9,53 @@ const handler = async (m, {usedPrefix, conn}) => {
 
   try {
     const ct = [
-      'AF',
-      'AX',
-      'AL',
-      'DZ',
-      'AS',
-      'AD',
-      'AO',
-      'AI',
-      'AQ',
-      'AG',
-      'AR',
-      'AM',
-      'AW',
-      'AU',
-      'AT',
-      'AZ',
-      'BS',
-      'BH',
-      'BD',
-      'BB',
-      'BY',
-      'BE',
-      'BZ',
-      'BJ',
-      'BM',
-      'BT',
-      'BO',
-      'BQ',
-      'BA',
-      'BW',
-      'BV',
-      'BR',
-      'IO',
-      'BN',
-      'BG',
-      'BF',
-      'BI',
-      'KH',
-      'CM',
-      'CA',
-      'CV',
-      'KY',
-      'CF',
-      'TD',
-      'CL',
-      'CN',
-      'CX',
-      'CC',
-      'CO',
-      'KM',
-      'CG',
-      'CD',
-      'CK',
-      'CR',
-      'CI',
-      'HR',
-      'CU',
-      'CW',
-      'CY',
-      'CZ',
-      'DK',
-      'DJ',
-      'DM',
-      'DO',
-      'EC',
-      'EG',
-      'SV',
-      'GQ',
-      'ER',
-      'EE',
-      'ET',
-      'FK',
-      'FO',
-      'FJ',
-      'FI',
-      'FR',
-      'GF',
-      'PF',
-      'TF',
-      'GA',
-      'GM',
-      'GE',
-      'DE',
-      'GH',
-      'GI',
-      'GR',
-      'GL',
-      'GD',
-      'GP',
-      'GU',
-      'GT',
-      'GG',
-      'GN',
-      'GW',
-      'GY',
-      'HT',
-      'HM',
-      'VA',
-      'HN',
-      'HK',
-      'HU',
-      'IS',
-      'IN',
-      'ID',
-      'IR',
-      'IQ',
-      'IE',
-      'IM',
-      'IL',
-      'IT',
-      'JM',
-      'JP',
-      'JE',
-      'JO',
-      'KZ',
-      'KE',
-      'KI',
-      'KP',
-      'KR',
-      'XK',
-      'KW',
-      'KG',
-      'LA',
-      'LV',
-      'LB',
-      'LS',
-      'LR',
-      'LY',
-      'LI',
-      'LT',
-      'LU',
-      'MO',
-      'MK',
-      'MG',
-      'MW',
-      'MY',
-      'MV',
-      'ML',
-      'MT',
-      'MH',
-      'MQ',
-      'MR',
-      'MU',
-      'YT',
-      'MX',
-      'FM',
-      'MD',
-      'MC',
-      'MN',
-      'ME',
-      'MS',
-      'MA',
-      'MZ',
-      'MM',
-      'NA',
-      'NR',
-      'NP',
-      'NL',
-      'AN',
-      'NC',
-      'NZ',
-      'NI',
-      'NE',
-      'NG',
-      'NU',
-      'NF',
-      'MP',
-      'NO',
-      'OM',
-      'PK',
-      'PW',
-      'PS',
-      'PA',
-      'PG',
-      'PY',
-      'PE',
-      'PH',
-      'PN',
-      'PL',
-      'PT',
-      'PR',
-      'QA',
-      'RS',
-      'RE',
-      'RO',
-      'RU',
-      'RW',
-      'BL',
-      'SH',
-      'KN',
-      'LC',
-      'MF',
-      'PM',
-      'VC',
-      'WS',
-      'SM',
-      'ST',
-      'SA',
-      'SN',
-      'CS',
-      'SC',
-      'SL',
-      'SG',
-      'SX',
-      'SK',
-      'SI',
-      'SB',
-      'SO',
-      'ZA',
-      'GS',
-      'SS',
-      'ES',
-      'LK',
-      'SD',
-      'SR',
-      'SJ',
-      'SZ',
-      'SE',
-      'CH',
-      'SY',
-      'TW',
-      'TJ',
-      'TZ',
-      'TH',
-      'TL',
-      'TG',
-      'TK',
-      'TO',
-      'TT',
-      'TN',
-      'TR',
-      'XT',
-      'TM',
-      'TC',
-      'TV',
-      'UG',
-      'UA',
-      'AE',
-      'GB',
-      'US',
-      'UM',
-      'UY',
-      'UZ',
-      'VU',
-      'VE',
-      'VN',
-      'VG',
-      'VI',
-      'WF',
-      'EH',
-      'YE',
-      'ZM',
-      'ZW',
+      'US', 'GB', 'JP', 'KR', 'BR', // More reliable countries
+      'FR', 'DE', 'IT', 'ES', 'CA'  // for World Bank API
     ];
+    
+    // 1. Fetch country data with timeout
     const ke = await fetch(
-        `https://api.worldbank.org/v2/country/${ct.getRandom()}?format=json`,
-    );
-    const kt = await ke.json();
-    // let imgr = flaaa.getRandom()
+      `https://api.worldbank.org/v2/country/${ct.getRandom()}?format=json`,
+      { timeout: 5000 }
+    ).catch(_ => null);
+    
+    // 2. Fallback if API fails
+    const kt = ke ? await ke.json() : { 
+      1: [{
+        name: "Mystic Land",
+        id: "ML",
+        capitalCity: "Adventure City",
+        longitude: "0°",
+        latitude: "0°"
+      }]
+    };
+
+    // 3. Image generation (fixed)
+    const img = await conn.profilePictureUrl(m.sender, 'image')
+      .catch(_ => 'https://i.imgur.com/8Km9tLL.jpg'); // Fallback image
+
     const user = global.db.data.users[m.sender];
     const timers = cooldown - (new Date() - user.lastadventure);
+    
     if (user.health < 80) {
       return conn.reply(
-          m.chat,
-          `_${htki} ${tradutor.texto1[0]} ${htka}_\n\n${tradutor.texto1[1]}`,
-          m,
+        m.chat,
+        `_${htki} ${tradutor.texto1[0]} ${htka}_\n\n${tradutor.texto1[1]}`,
+        m,
       );
     }
+    
     if (new Date() - user.lastadventure <= cooldown) {
       return conn.reply(
-          m.chat,
-          `${htki} ${tardutor.texto2[0]} ${htka}\n\n${tardutor.texto2[1]} ${timers.toTimeString()} ${tardutor.texto2[2]}`,
-          m,
+        m.chat,
+        `${htki} ${tradutor.texto2[0]} ${htka}\n\n${tradutor.texto2[1]} ${new Date(timers).toISOString().substr(11, 8)} ${tradutor.texto2[2]}`,
+        m,
       );
     }
+
+    // 4. Generate adventure card with image
     const rewards = reward(user);
-    let text = `${tardutor.texto2[3]}  *» ${kt[1][0].name}*
+    let text = `${tradutor.texto2[3]} *» ${kt[1][0].name}*
 
 ${cmenut}
 ${cmenub} ${tradutor.texto3[0]} ${kt[1][0].id}
@@ -298,6 +67,7 @@ ${cmenuf}
 ${tradutor.texto3[4]}
 ${cmenua}`;
 
+    // Reward processing (unchanged)
     for (const lost in rewards.lost) {
       if (user[lost]) {
         const total = rewards.lost[lost].getRandom();
@@ -313,16 +83,26 @@ ${cmenua}`;
         if (total) text += `\n» ${global.rpg.emoticon(rewardItem)} ${total}`;
       }
     }
-    conn.reply(m.chat, `${htki} ${tradutor.texto5[0]} ${htka}\n\n${text}`, m);
+    
+    // 5. Send message with image
+    await conn.sendFile(m.chat, img, 'adventure.jpg', 
+      `${htki} ${tradutor.texto5[0]} ${htka}\n\n${text}`, 
+      m, null, { mentions: [m.sender] }
+    );
+    
     user.lastadventure = new Date() * 1;
-  } catch {
+    
+  } catch (e) {
+    console.error('Adventure error:', e);
     conn.reply(
-        m.chat,
-        `${tradutor.texto5[1]}`,
-        m,
+      m.chat,
+      `${tradutor.texto5[1]}`,
+      m,
     );
   }
 };
+
+// Keep original reward function and handler properties
 handler.help = ['adventure'];
 handler.tags = ['xp'];
 handler.command = /^(adventure|adv|aventura|aventurar)$/i;
