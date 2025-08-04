@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url';
 import fs from 'fs'; 
 import moment from 'moment-timezone';
 
-global.botnumber = "false";
-global.confirmCode = "false";
+global.botnumber = "";
+global.confirmCode = "";
 global.authFile = `MysticSession`;
 
 // Set to true if the Bot responds to its commands with other commands.
