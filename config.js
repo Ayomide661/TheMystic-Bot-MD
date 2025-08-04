@@ -11,7 +11,7 @@ global.authFile = `MysticSession`;
 // Set to true if the Bot responds to its commands with other commands.
 // Set to false to use the Bot from the same number as the Bot itself.
 // m.isBaileys error marked as false is a temporary fix
-global.isBaileysFail = true;
+global.isBaileysFail = false;
 
 global.defaultLenguaje = 'en';
 
