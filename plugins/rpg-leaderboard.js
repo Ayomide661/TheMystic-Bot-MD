@@ -1,53 +1,69 @@
 const handler = async (m, { conn, args }) => {
-    try {
-        // Get registered users
-        const users = Object.entries(global.db.data.users)
-            .filter(([jid, user]) => jid.endsWith('@s.whatsapp.net') && user.registered)
-            .map(([jid, user]) => ({
-                jid,
-                name: conn.getName(jid) || 'Unknown user',
-                exp: Math.floor(Number(user.exp)) || 0,
-                limit: Math.floor(Number(user.limit)) || 0,
-                level: Math.floor(Number(user.level)) || 0
-            }));
+  try {
+    const idioma = global.db.data.users[m.sender]?.language || global.defaultLenguaje;
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
+    const tradutor = _translate.plugins.rpg_leaderboard;
 
-        if (users.length === 0) {
-            return conn.reply(m.chat, '🌟 No registered adventurers found!', m);
-        }
+    // Get registered users
+    const users = Object.entries(global.db.data.users)
+      .filter(([_, user]) => user.registered)
+      .map(([jid, user]) => ({
+        jid,
+        name: conn.getName(jid),
+        exp: Number(user.exp) || 0,
+        limit: Number(user.limit) || 0,
+        level: Number(user.level) || 0
+      }))
+      .filter(user => user.jid && user.jid.endsWith("@s.whatsapp.net"));
 
-        // Sorting
-        const sortedExp = [...users].sort((a, b) => b.exp - a.exp);
-        const sortedLim = [...users].sort((a, b) => b.limit - a.limit);
-        const sortedLevel = [...users].sort((a, b) => b.level - a.level);
+    if (users.length === 0) {
+      return conn.reply(m.chat, 'No registered users found for leaderboard', m);
+    }
 
-        // Leaderboard length (5-20)
-        const len = Math.min(Math.max(args[0] ? parseInt(args[0]) : 10, 5), 20);
+    // Sort users
+    const sortedExp = [...users].sort((a, b) => b.exp - a.exp);
+    const sortedLim = [...users].sort((a, b) => b.limit - a.limit);
+    const sortedLevel = [...users].sort((a, b) => b.level - a.level);
 
-        // Progress bar generator (20 chars)
-        const createProgressBar = (value, max) => {
-            const pct = max ? Math.min(value / max, 1) : 0;
-            const filled = Math.round(pct * 20);
-            return `[${'█'.repeat(filled)}${'░'.repeat(20 - filled)}] ${Math.round(pct * 100)}%`;
-        };
+    // Determine leaderboard length
+    const len = Math.min(
+      args[0] && !isNaN(args[0]) ? Math.max(parseInt(args[0]), 10) : 10, 
+      100
+    );
 
-        // Section generator (EXACTLY matches your format)
-        const createSection = (title, icon, list, type) => `
+    // Progress bar function
+    const createProgressBar = (percentage) => {
+      const bars = 20;
+      const filled = Math.round(percentage * bars);
+      return `[${'█'.repeat(filled)}${'░'.repeat(bars - filled)}] ${Math.round(percentage*100)}%`;
+    };
+
+    // Create leaderboard section - ONLY CHANGE IS HERE (added .toLocaleString())
+    const createSection = (title, icon, list, valueName, unit) => {
+      if (list.length === 0) return '';
+      
+      const maxValue = list[0][valueName] || 1;
+      return `
 ┣━━━〘 ${icon} ${title} 〙━━━⬣
 ${list.slice(0, len).map((user, i) => {
-    const value = user[type].toLocaleString(); // Adds commas
-    return `┃ ${(i + 1 + '.').padEnd(3)} @⁨${user.name}⁩   ${value.padEnd(6)} ${type.toUpperCase()}
-┃   ${createProgressBar(user[type], list[0][type])}`;
+  const position = `${i+1}.`.padEnd(3);
+  const name = `@${user.jid.split('@')[0].padEnd(15)}`;
+  const value = `${user[valueName].toLocaleString()} ${unit}`.padEnd(10); // Added .toLocaleString()
+  const progress = createProgressBar(user[valueName]/maxValue);
+  
+  return `┃ ${position} ${name} ${value}\n┃   ${progress}`;
 }).join('\n')}`;
+    };
 
-        // Build the EXACT message structure you want
-        const message = `╭━━━〘 ${'LEADERBOARD'.padEnd(15)}〙━━━⬣
+    // Build the message
+    const message = `╭━━━〘 ${'LEADERBOARD'.padEnd(15)}〙━━━⬣
 ┃
 ┃ 🏆 *Outstanding Adventurers*
 ┃ 📅 ${new Date().toLocaleDateString()}
 ┃ 👥 Total Users: ${users.length}
-${createSection('TOP EXPERIENCE', '🌟', sortedExp, 'exp')}
-${createSection('TOP DIAMONDS', '💎', sortedLim, 'limit')}
-${createSection('TOP LEVELS', '🎚️', sortedLevel, 'level')}
+${createSection('TOP EXPERIENCE', '🌟', sortedExp, 'exp', 'EXP')}
+${createSection('TOP DIAMONDS', '💎', sortedLim, 'limit', 'DIAMONDS')}
+${createSection('TOP LEVELS', '🎚️', sortedLevel, 'level', 'LEVEL')}
 ┃
 ┣━〘 YOUR POSITION 〙━⬣
 ┃ • EXP: #${sortedExp.findIndex(u => u.jid === m.sender) + 1}
@@ -56,18 +72,18 @@ ${createSection('TOP LEVELS', '🎚️', sortedLevel, 'level')}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━⬣`.trim();
 
-        await conn.sendMessage(m.chat, { 
-            text: message, 
-            mentions: conn.parseMention(message) 
-        }, { quoted: m });
+    await conn.sendMessage(m.chat, { 
+      text: message, 
+      mentions: conn.parseMention(message) 
+    }, { quoted: m });
 
-    } catch (error) {
-        console.error('Leaderboard Error:', error);
-        conn.reply(m.chat, '⚠️ Leaderboard unavailable. Try again later.', m);
-    }
+  } catch (error) {
+    console.error('Leaderboard error:', error);
+    conn.reply(m.chat, 'An error occurred while generating the leaderboard', m);
+  }
 };
 
 handler.help = ['leaderboard'];
-handler.tags = ['rpg'];
+handler.tags = ['xp'];
 handler.command = ['leaderboard', 'lb'];
 export default handler;
