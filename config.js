@@ -63,7 +63,7 @@ global.mysticbot = 'https://github.com/BrunoSobrino/TheMystic-Bot-MD';
 global.waitt = '*_[ ⏳ ] Loading..._*';
 global.waittt = '*_[ ⏳ ] Loading..._*';
 global.waitttt = '*_[ ⏳ ] Loading..._*';
-global.nomorown = '5219993404349';
+global.nomorown = '2348108629978';
 global.pdoc = [
   'application/vnd.openxmlformats-officedocument.presentationml.presentation', 
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
