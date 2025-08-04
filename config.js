@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs'; 
 import moment from 'moment-timezone';
 
-global.botnumber = "+2348108629978";
+global.botnumber = "2348108629978";
 global.confirmCode = "";
 global.authFile = `MysticSession`;
 
@@ -21,9 +21,9 @@ global.owner = [
 ];
 
 // Superuser tags
-global.suittag = ['2348134462638'];
+global.suittag = ['2348108629978'];
 // Premium users
-global.prems = ['2348134462638'];
+global.prems = ['2348108629978'];
 
 // Base Rest API
 global.BASE_API_DELIRIUS = "https://delirius-apiofc.vercel.app";
@@ -42,7 +42,7 @@ global.imagen3 = fs.readFileSync('./src/assets/images/menu/languages/fr/menu.png
 global.imagen4 = fs.readFileSync('./src/assets/images/menu/languages/en/menu.png');
 global.imagen5 = fs.readFileSync('./src/assets/images/menu/languages/ru/menu.png');
 
-global.mods = ['2348134462638'];
+global.mods = ['2348108629978'];
 
 //* *******Time***************
 global.d = new Date(new Date + 3600000);
