@@ -19,7 +19,7 @@ const handler = async (m, { conn, command, text, usedPrefix }) => {
         description = `${tradutor.texto3[0]} ${text.toUpperCase()} ${tradutor.texto3[1]} ${percentages}% Gay. ${emoji}*\n${tradutor.texto3[2]}`;
       }
       break;
-    case 'lesbiana':
+    case 'lesbian':
       emoji = '🏳️‍🌈';
       if (percentages < 50) {
         description = `${tradutor.texto4[0]} ${text.toUpperCase()} ${tradutor.texto4[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto4[2]}`;
@@ -29,8 +29,8 @@ const handler = async (m, { conn, command, text, usedPrefix }) => {
         description = `${tradutor.texto6[0]} ${text.toUpperCase()} ${tradutor.texto6[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto6[2]}`;
       }
       break;
-    case 'pajero':
-    case 'pajera':
+    case 'wanker':
+    case 'wankette':
       emoji = '😏💦';
       if (percentages < 50) {
         description = `${tradutor.texto7[0]} ${text.toUpperCase()} ${tradutor.texto7[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto7[2]}`;
@@ -40,8 +40,8 @@ const handler = async (m, { conn, command, text, usedPrefix }) => {
         description = `${tradutor.texto9[0]} ${text.toUpperCase()} ${tradutor.texto9[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto9[2]}`;
       }
       break;
-    case 'puto':
-    case 'puta':
+    case 'fag':
+    case 'slut':
       emoji = '🔥🥵';
       if (percentages < 50) {
         description = `${tradutor.texto10[0]} ${text.toUpperCase()} ${tradutor.texto10[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto10[2]}`;
@@ -51,8 +51,8 @@ const handler = async (m, { conn, command, text, usedPrefix }) => {
         description = `${tradutor.texto12[0]} ${text.toUpperCase()} ${tradutor.texto12[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto12[2]}`;
       }
       break;
-    case 'manco':
-    case 'manca':
+    case 'noob':
+    case 'noobette':
       emoji = '💩';
       if (percentages < 50) {
         description = `${tradutor.texto13[0]} ${text.toUpperCase()} ${tradutor.texto13[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto13[2]}`;
@@ -62,7 +62,7 @@ const handler = async (m, { conn, command, text, usedPrefix }) => {
         description = `${tradutor.texto15[0]} ${text.toUpperCase()} ${tradutor.texto15[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto15[2]}`;
       }
       break;
-    case 'rata':
+    case 'rat':
       emoji = '🐁';
       if (percentages < 50) {
         description = `${tradutor.texto16[0]} ${text.toUpperCase()} ${tradutor.texto16[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto16[2]}`;
@@ -72,8 +72,7 @@ const handler = async (m, { conn, command, text, usedPrefix }) => {
         description = `${tradutor.texto18[0]} ${text.toUpperCase()} ${tradutor.texto18[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto18[2]}`;
       }
       break;
-    case 'prostituto':
-    case 'prostituta':
+    case 'prostitute':
       emoji = '🫦👅';
       if (percentages < 50) {
         description = `${tradutor.texto19[0]} ${text.toUpperCase()} ${tradutor.texto19[1]} ${percentages}% ${command}. ${emoji}*\n${tradutor.texto19[2]}`;
@@ -112,7 +111,7 @@ var hawemod = [
  }
 loading()    
 };
-handler.help = ['gay2', 'lesbiana', 'pajero', 'pajera', 'puto', 'puta', 'manco', 'manca', 'rata', 'prostituta', 'prostituto'].map((v) => v + ' @tag | nombre');
+handler.help = ['gay2', 'lesbian', 'wanker', 'wankette', 'fag', 'slut', 'noob', 'noobette', 'rat', 'prostitute'].map((v) => v + ' @tag | name');
 handler.tags = ['game'];
-handler.command = /^(gay2|lesbiana|pajero|pajera|puto|puta|manco|manca|rata|prostituta|prostituto)$/i;
+handler.command = /^(gay2|lesbian|wanker|wankette|fag|slut|noob|noobette|rat|prostitute)$/i;
 export default handler;
