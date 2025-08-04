@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url';
 import fs from 'fs'; 
 import moment from 'moment-timezone';
 
-global.botnumber = "2348108629978";
-global.confirmCode = "";
+global.botnumber = "false";
+global.confirmCode = "false";
 global.authFile = `MysticSession`;
 
 // Set to true if the Bot responds to its commands with other commands.
@@ -17,7 +17,7 @@ global.defaultLenguaje = 'en';
 
 // Owners: [number, name (optional), isPrimaryOwner (optional)]
 global.owner = [
-  ['2348108629978', '👑 Owner 👑', false],
+  ['2348108629978', '👑 Owner 👑', true],
   ['2348134462638']
 ];
 
