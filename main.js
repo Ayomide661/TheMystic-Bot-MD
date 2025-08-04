@@ -1,33 +1,32 @@
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1'; 
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
 import './config.js';
 import './api.js';
-import {createRequire} from 'module';
-import path, {join} from 'path';
-import {fileURLToPath, pathToFileURL} from 'url';
-import {platform} from 'process';
-import fs, {readdirSync, statSync, unlinkSync, existsSync, readFileSync, watch} from 'fs';
+import { createRequire } from 'module';
+import path, { join } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { platform } from 'process';
+import fs, { readdirSync, statSync, unlinkSync, existsSync, readFileSync, watch } from 'fs';
 import yargs from 'yargs';
-import {spawn} from 'child_process';
+import { spawn } from 'child_process';
 import lodash from 'lodash';
 import chalk from 'chalk';
 import syntaxerror from 'syntax-error';
-import {format} from 'util';
+import { format } from 'util';
 import pino from 'pino';
 import Pino from 'pino';
-import {Boom} from '@hapi/boom';
-import {makeWASocket, protoType, serialize} from './src/libraries/simple.js';
-import {initializeSubBots} from './src/libraries/subBotManager.js';
-import {Low, JSONFile} from 'lowdb';
+import { Boom } from '@hapi/boom';
+import { makeWASocket, protoType, serialize } from './src/libraries/simple.js';
+import { initializeSubBots } from './src/libraries/subBotManager.js';
+import { Low, JSONFile } from 'lowdb';
 import store from './src/libraries/store.js';
-// IMPORT THE NEW LidResolver CLASS
 import LidResolver from './src/libraries/LidResolver.js';
 
-const {DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, PHONENUMBER_MCC } = await import("baileys");
+const { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, PHONENUMBER_MCC } = await import("baileys");
 import readline from 'readline';
 import NodeCache from 'node-cache';
-const {chain} = lodash;
+const { chain } = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
-let stopped = 'close';  
+let stopped = 'close';
 protoType();
 serialize();
 const msgRetryCounterMap = new Map();
@@ -41,8 +40,8 @@ global.__filename = function filename(pathURL = import.meta.url, rmPrefix = plat
 }; global.__require = function require(dir = import.meta.url) {
   return createRequire(dir);
 };
-global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({...query, ...(apikeyqueryname ? {[apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name]} : {})})) : '');
-global.timestamp = {start: new Date};
+global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({ ...query, ...(apikeyqueryname ? { [apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name] } : {}) })) : '');
+global.timestamp = { start: new Date };
 global.videoList = [];
 global.videoListXXX = [];
 const __dirname = global.__dirname(import.meta.url);
@@ -52,7 +51,7 @@ global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(op
 
 global.loadDatabase = async function loadDatabase() {
   if (global.db.READ) {
-    return new Promise((resolve) => setInterval(async function() {
+    return new Promise((resolve) => setInterval(async function () {
       if (!global.db.READ) {
         clearInterval(this);
         resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
@@ -79,21 +78,21 @@ loadDatabase();
 /* ------------------------------------------------*/
 
 /**
- * Process text to resolve LIDs in mentions (@)
+ * Procesa texto para resolver LIDs en menciones (@)
  */
 async function processTextMentions(text, groupId) {
   if (!text || !groupId || !text.includes('@')) return text;
-  
+
   const mentionRegex = /@(\d{8,20})/g;
   const mentions = [...text.matchAll(mentionRegex)];
-  
+
   if (!mentions.length) return text;
-  
+
   let processedText = text;
   for (const mention of mentions) {
     const [fullMatch, lidNumber] = mention;
     const lidJid = `${lidNumber}@lid`;
-    
+
     try {
       const resolvedJid = await global.lidResolver.resolveLid(lidJid, groupId);
       if (resolvedJid && resolvedJid !== lidJid) {
@@ -101,34 +100,34 @@ async function processTextMentions(text, groupId) {
         processedText = processedText.replace(fullMatch, `@${resolvedNumber}`);
       }
     } catch (error) {
-      console.error('Error processing LID mention:', error);
+      console.error('Error procesando mención LID:', error);
     }
   }
-  
+
   return processedText;
 }
 
 /**
- * Intercept and process messages before the handler
+ * Intercepta y procesa mensajes antes del handler
  */
 async function interceptMessages(messages) {
   if (!Array.isArray(messages)) return messages;
-  
+
   const processedMessages = [];
   for (const message of messages) {
     try {
       const processedMessage = await global.lidResolver.processMessage(message);
       processedMessages.push(processedMessage);
     } catch (error) {
-      console.error('Error intercepting message:', error);
+      console.error('Error interceptando mensaje:', error);
       processedMessages.push(message);
     }
   }
-  
+
   return processedMessages;
 }
 
-const {state, saveCreds} = await useMultiFileAuthState(global.authFile);
+const { state, saveCreds } = await useMultiFileAuthState(global.authFile);
 const { version } = await fetchLatestBaileysVersion();
 let phoneNumber = global.botnumber || process.argv.find(arg => arg.startsWith('--phone='))?.split('=')[1];
 const methodCodeQR = process.argv.includes('--method=qr');
@@ -141,27 +140,27 @@ let opcion;
 if (methodCodeQR) opcion = '1';
 if (!methodCodeQR && !methodCode && !fs.existsSync(`./${global.authFile}/creds.json`)) {
   do {
-    opcion = await question('[ ℹ️ ] Select an option:\n1. With QR code\n2. With 8-digit text code\n---> ');
+    opcion = await question('[ ℹ️ ] Seleccione una opción:\n1. Con código QR\n2. Con código de texto de 8 dígitos\n---> ');
     if (!/^[1-2]$/.test(opcion)) {
-      console.log('[ ❗ ] Please select only 1 or 2.\n');
+      console.log('[ ❗ ] Por favor, seleccione solo 1 o 2.\n');
     }
   } while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${global.authFile}/creds.json`));
 }
 
 const filterStrings = [
-  "Q2xvc2luZyBzdGFsZSBvcGVu", 
+  "Q2xvc2luZyBzdGFsZSBvcGVu",
   "Q2xvc2luZyBvcGVuIHNlc3Npb24=",
   "RmFpbGVkIHRvIGRlY3J5cHQ=",
   "U2Vzc2lvbiBlcnJvcg==",
   "RXJyb3I6IEJhZCBNQUM=",
-  "RGVjcnlwdGVkIG1lc3NhZ2U=" 
+  "RGVjcnlwdGVkIG1lc3NhZ2U="
 ];
 
-console.info = () => {};
-console.debug = () => {};
+console.info = () => { };
+console.debug = () => { };
 ['log', 'warn', 'error'].forEach(methodName => {
   const originalMethod = console[methodName];
-  console[methodName] = function() {
+  console[methodName] = function () {
     const message = arguments[0];
     if (typeof message === 'string' && filterStrings.some(filterString => message.includes(Buffer.from(filterString, 'base64').toString()))) {
       arguments[0] = "";
@@ -171,21 +170,21 @@ console.debug = () => {};
 });
 
 process.on('uncaughtException', (err) => {
-  if (filterStrings.includes(Buffer.from(err.message).toString('base64'))) return; 
+  if (filterStrings.includes(Buffer.from(err.message).toString('base64'))) return;
   console.error('Uncaught Exception:', err);
 });
 
 const connectionOptions = {
   logger: pino({ level: 'silent' }),
   printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
-  mobile: MethodMobile, 
+  mobile: MethodMobile,
   browser: opcion === '1' ? ['TheMystic-Bot-MD', 'Safari', '2.0.0'] : methodCodeQR ? ['TheMystic-Bot-MD', 'Safari', '2.0.0'] : ['Ubuntu', 'Chrome', '20.0.04'],
   auth: {
     creds: state.creds,
     keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
   },
-  markOnlineOnConnect: false, 
-  generateHighQualityLinkPreview: true, 
+  markOnlineOnConnect: false,
+  generateHighQualityLinkPreview: true,
   syncFullHistory: false,
   getMessage: async (key) => {
     try {
@@ -201,8 +200,8 @@ const connectionOptions = {
   defaultQueryTimeoutMs: undefined,
   cachedGroupMetadata: (jid) => global.conn.chats[jid] ?? {},
   version: [2, 3000, 1023223821],
-  keepAliveIntervalMs: 55000, 
-  maxIdleTimeMs: 60000, 
+  keepAliveIntervalMs: 55000,
+  maxIdleTimeMs: 60000,
 };
 
 global.conn = makeWASocket(connectionOptions);
@@ -212,30 +211,30 @@ if (!fs.existsSync(`./${global.authFile}/creds.json`)) {
   if (opcion === '2' || methodCode) {
     opcion = '2';
     if (!conn.authState.creds.registered) {
-      if (MethodMobile) throw new Error('Cannot use pairing code with mobile API');
+      if (MethodMobile) throw new Error('No se puede usar un código de emparejamiento con la API móvil');
 
-      let phoneNumber;
+      let numeroTelefono;
       if (!!phoneNumber) {
-        phoneNumber = phoneNumber.replace(/[^0-9]/g, '');
-        if (!Object.keys(PHONENUMBER_MCC).some(v => phoneNumber.startsWith(v))) {
-          console.log(chalk.bgBlack(chalk.bold.redBright("Start with your WhatsApp number's country code.\nExample: +5219992095479\n")));
+        numeroTelefono = phoneNumber.replace(/[^0-9]/g, '');
+        if (!Object.keys(PHONENUMBER_MCC).some(v => numeroTelefono.startsWith(v))) {
+          console.log(chalk.bgBlack(chalk.bold.redBright("Comience con el código de país de su número de WhatsApp.\nEjemplo: +5219992095479\n")));
           process.exit(0);
         }
       } else {
         while (true) {
-          phoneNumber = await question(chalk.bgBlack(chalk.bold.yellowBright('Please enter your WhatsApp number.\nExample: +5219992095479\n')));
-          phoneNumber = phoneNumber.replace(/[^0-9]/g, '');
-          if (phoneNumber.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some(v => phoneNumber.startsWith(v))) break;
-          console.log(chalk.bgBlack(chalk.bold.redBright("Please enter your WhatsApp number.\nExample: +5219992095479.\n")));
+          numeroTelefono = await question(chalk.bgBlack(chalk.bold.yellowBright('Por favor, escriba su número de WhatsApp.\nEjemplo: +5219992095479\n')));
+          numeroTelefono = numeroTelefono.replace(/[^0-9]/g, '');
+          if (numeroTelefono.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some(v => numeroTelefono.startsWith(v))) break;
+          console.log(chalk.bgBlack(chalk.bold.redBright("Por favor, escriba su número de WhatsApp.\nEjemplo: +5219992095479.\n")));
         }
-        rl.close();  
-      } 
+        rl.close();
+      }
 
       setTimeout(async () => {
-        let code = await conn.requestPairingCode(phoneNumber);
-        code = code?.match(/.{1,4}/g)?.join("-") || code;
-        console.log(chalk.yellow('[ ℹ️ ] enter the pairing code in WhatsApp.'));
-        console.log(chalk.black(chalk.bgGreen(`Your pairing code: `)), chalk.black(chalk.white(code)));
+        let codigo = await conn.requestPairingCode(numeroTelefono);
+        codigo = codigo?.match(/.{1,4}/g)?.join("-") || codigo;
+        console.log(chalk.yellow('[ ℹ️ ] introduce el código de emparejamiento en WhatsApp.'));
+        console.log(chalk.black(chalk.bgGreen(`Su código de emparejamiento: `)), chalk.black(chalk.white(codigo)));
       }, 3000);
     }
   }
@@ -243,7 +242,7 @@ if (!fs.existsSync(`./${global.authFile}/creds.json`)) {
 
 conn.isInit = false;
 conn.well = false;
-conn.logger.info(`[ㅤℹ️­ㅤ] Loading...\n`);
+conn.logger.info(`[ㅤℹ️­ㅤ] Cargando...\n`);
 
 if (!opts['test']) {
   if (global.db) {
@@ -276,8 +275,8 @@ function deleteCoreFiles(filePath) {
   const filename = path.basename(filePath);
   if (coreFilePattern.test(filename)) {
     fs.unlink(filePath, (err) => {
-      if (err) console.error(`Error deleting file ${filePath}:`, err);
-      else console.log(`Deleted file: ${filePath}`);
+      if (err) console.error(`Error eliminando el archivo ${filePath}:`, err);
+      else console.log(`Archivo eliminado: ${filePath}`);
     });
   }
 }
@@ -310,7 +309,7 @@ function purgeSessionSB() {
       }
     });
   } catch (err) {
-    console.log(chalk.bold.red(`[ ℹ️ ] Something went wrong during deletion, files not deleted`));
+    console.log(chalk.bold.red(`[ ℹ️ ] Algo salio mal durante la eliminación, archivos no eliminados`));
   }
 }
 
@@ -324,10 +323,10 @@ function purgeOldFiles() {
         const filePath = path.join(dir, file);
         stat(filePath, (err, stats) => {
           if (err) throw err;
-          if (stats.isFile() && stats.mtimeMs < oneHourAgo && file !== 'creds.json') { 
-            unlinkSync(filePath, err => {  
+          if (stats.isFile() && stats.mtimeMs < oneHourAgo && file !== 'creds.json') {
+            unlinkSync(filePath, err => {
               if (err) throw err;
-              console.log(chalk.bold.green(`File ${file} deleted successfully`));
+              console.log(chalk.bold.green(`Archivo ${file} borrado con éxito`));
             });
           }
         });
@@ -340,7 +339,7 @@ async function connectionUpdate(update) {
   let isFirstConnection = '';
   let qrAlreadyShown = false;
   let qrTimeout = null;
-  const {connection, lastDisconnect, isNewLogin} = update;
+  const { connection, lastDisconnect, isNewLogin } = update;
   stopped = connection;
   if (isNewLogin) conn.isInit = true;
   const code = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
@@ -351,21 +350,21 @@ async function connectionUpdate(update) {
   if (global.db.data == null) loadDatabase();
   if (update.qr != 0 && update.qr != undefined || methodCodeQR) {
     if (opcion == '1' || methodCodeQR) {
-      console.log(chalk.yellow('[ㅤℹ️ㅤㅤ] Scan the QR code.'));
+      console.log(chalk.yellow('[ㅤℹ️ㅤㅤ] Escanea el código QR.'));
       qrAlreadyShown = true;
       if (qrTimeout) clearTimeout(qrTimeout);
-      qrTimeout = setTimeout(() => qrAlreadyShown = false, 60000); 
+      qrTimeout = setTimeout(() => qrAlreadyShown = false, 60000);
     }
   }
   if (connection == 'open') {
-    console.log(chalk.yellow('[ㅤℹ️ㅤㅤ] Connected successfully.'));
+    console.log(chalk.yellow('[ㅤℹ️ㅤㅤ] Conectado correctamente.'));
     isFirstConnection = true;
     if (!global.subBotsInitialized) {
       global.subBotsInitialized = true;
       try {
         await initializeSubBots();
       } catch (error) {
-        console.error(chalk.red('[ ❗ ] Error initializing sub-bots:'), error);
+        console.error(chalk.red('[ ❗ ] Error al inicializar sub-bots:'), error);
       }
     }
   }
@@ -385,55 +384,55 @@ async function connectionUpdate(update) {
   }
   if (reason == 405) {
     await fs.unlinkSync("./MysticSession/" + "creds.json");
-    console.log(chalk.bold.redBright(`[ ⚠ ] Connection replaced, please wait a moment I'm going to restart...\nIf errors appear, start again with: npm start`)); 
+    console.log(chalk.bold.redBright(`[ ⚠ ] Conexión replazada, Por favor espere un momento me voy a reiniciar...\nSi aparecen error vuelve a iniciar con : npm start`));
     process.send('reset');
   }
   if (connection === 'close') {
     if (reason === DisconnectReason.badSession) {
       if (shouldLogError('badSession')) {
-        conn.logger.error(`[ ⚠ ] Incorrect session, please delete the ${global.authFile} folder and scan again.`); 
+        conn.logger.error(`[ ⚠ ] Sesión incorrecta, por favor elimina la carpeta ${global.authFile} y escanea nuevamente.`);
       }
       await global.reloadHandler(true).catch(console.error);
     } else if (reason === DisconnectReason.connectionClosed) {
       if (shouldLogError('connectionClosed')) {
-        conn.logger.warn(`[ ⚠ ] Connection closed, reconnecting...`);
+        conn.logger.warn(`[ ⚠ ] Conexión cerrada, reconectando...`);
       }
       await global.reloadHandler(true).catch(console.error);
     } else if (reason === DisconnectReason.connectionLost) {
       if (shouldLogError('connectionLost')) {
-        conn.logger.warn(`[ ⚠ ] Connection lost with server, reconnecting...`);
+        conn.logger.warn(`[ ⚠ ] Conexión perdida con el servidor, reconectando...`);
       }
       await global.reloadHandler(true).catch(console.error);
     } else if (reason === DisconnectReason.connectionReplaced) {
       if (shouldLogError('connectionReplaced')) {
-        conn.logger.error(`[ ⚠ ] Connection replaced, another new session has been opened. Please close the current session first.`);
+        conn.logger.error(`[ ⚠ ] Conexión reemplazada, se ha abierto otra nueva sesión. Por favor, cierra la sesión actual primero.`);
       }
       await global.reloadHandler(true).catch(console.error);
     } else if (reason === DisconnectReason.loggedOut) {
       if (shouldLogError('loggedOut')) {
-        conn.logger.error(`[ ⚠ ] Connection closed, please delete the ${global.authFile} folder and scan again.`);
+        conn.logger.error(`[ ⚠ ] Conexion cerrada, por favor elimina la carpeta ${global.authFile} y escanea nuevamente.`);
       }
     } else if (reason === DisconnectReason.restartRequired) {
       if (isFirstConnection) {
         if (shouldLogError('restartRequired')) {
-          //conn.logger.info(`[ ⚠ ] First start: Ignoring restartRequired (possible false positive)`);
+          //conn.logger.info(`[ ⚠ ] Primer inicio: Ignorando restartRequired (posible falso positivo)`);
         }
-        isFirstConnection = false; 
+        isFirstConnection = false;
       } else {
         if (shouldLogError('restartRequired')) {
-          conn.logger.info(`[ ⚠ ] Restart required, reconnecting...`);
+          conn.logger.info(`[ ⚠ ] Reinicio necesario, reconectando...`);
         }
         await global.reloadHandler(true).catch(console.error);
       }
     } else if (reason === DisconnectReason.timedOut) {
       if (shouldLogError('timedOut')) {
-        conn.logger.warn(`[ ⚠ ] Connection timed out, reconnecting...`);
+        conn.logger.warn(`[ ⚠ ] Tiempo de conexión agotado, reconectando...`);
       }
       await global.reloadHandler(true).catch(console.error);
     } else {
       const unknownError = `unknown_${reason || ''}_${connection || ''}`;
       if (shouldLogError(unknownError)) {
-        conn.logger.warn(`[ ⚠ ] Unknown disconnection reason. ${reason || ''}: ${connection || ''}`);
+        conn.logger.warn(`[ ⚠ ] Razón de desconexión desconocida. ${reason || ''}: ${connection || ''}`);
       }
       await global.reloadHandler(true).catch(console.error);
     }
@@ -445,7 +444,7 @@ process.on('uncaughtException', console.error);
 let isInit = true;
 let handler = await import('./handler.js');
 
-global.reloadHandler = async function(restatConn) {
+global.reloadHandler = async function (restatConn) {
   try {
     const Handler = await import(`./handler.js?update=${Date.now()}`).catch(console.error);
     if (Object.keys(Handler || {}).length) handler = Handler;
@@ -458,7 +457,7 @@ global.reloadHandler = async function(restatConn) {
       global.conn.ws.close();
     } catch { }
     conn.ev.removeAllListeners();
-    global.conn = makeWASocket(connectionOptions, {chats: oldChats});
+    global.conn = makeWASocket(connectionOptions, { chats: oldChats });
     store?.bind(conn);
     global.lidResolver = new LidResolver(global.conn);
     isInit = true;
@@ -473,21 +472,60 @@ global.reloadHandler = async function(restatConn) {
     conn.ev.off('creds.update', conn.credsUpdate);
   }
 
-  conn.welcome = '👋 Welcome!\n@user';
-  conn.bye = '👋 Goodbye!\n@user';
-  conn.spromote = '*[ ℹ️ ] @user was promoted to admin.*';
-  conn.sdemote = '*[ ℹ️ ] @user was demoted from admin.*';
-  conn.sDesc = '*[ ℹ️ ] The group description has been modified.*';
-  conn.sSubject = '*[ ℹ️ ] The group name has been modified.*';
-  conn.sIcon = '*[ ℹ️ ] The group profile picture has been changed.*';
-  conn.sRevoke = '*[ ℹ️ ] The group invite link has been reset.*';
+  conn.welcome = '👋 ¡Bienvenido/a!\n@user';
+  conn.bye = '👋 ¡Hasta luego!\n@user';
+  conn.spromote = '*[ ℹ️ ] @user Fue promovido a administrador.*';
+  conn.sdemote = '*[ ℹ️ ] @user Fue degradado de administrador.*';
+  conn.sDesc = '*[ ℹ️ ] La descripción del grupo ha sido modificada.*';
+  conn.sSubject = '*[ ℹ️ ] El nombre del grupo ha sido modificado.*';
+  conn.sIcon = '*[ ℹ️ ] Se ha cambiado la foto de perfil del grupo.*';
+  conn.sRevoke = '*[ ℹ️ ] El enlace de invitación al grupo ha sido restablecido.*';
 
   const originalHandler = handler.handler.bind(global.conn);
-  conn.handler = async function(chatUpdate) {
+  conn.handler = async function (chatUpdate) {
     try {
       if (chatUpdate.messages) {
         chatUpdate.messages = await interceptMessages(chatUpdate.messages);
+
+
+        /** INicio de configuração para buttons 
+        const msg = chatUpdate.messages[0]
+        const body =
+          msg?.message?.buttonsResponseMessage?.selectedButtonId ||
+          msg?.message?.templateButtonReplyMessage?.selectedId ||
+          msg?.message?.conversation ||
+          msg?.message?.extendedTextMessage?.text
+
+
+        console.log(body)
+
+        switch (body) {
+          case 'glx_start_game':
+            console.log(`ENTROUUUUU`)
         
+            await conn.sendMessage(msg.key.remoteJid, {
+              text: `
+              
+🛠️ *Estamos trabalhando para melhorar o jogo GLX!*
+
+Enquanto isso, use o comando abaixo para voltar ao início do jogo:
+
+✨ *.glx*
+
+Agradecemos sua paciência e apoio. 🚀
+`,
+              footer: 'Game GLX',
+              buttons: [
+                { buttonId: 'glx_start_game', buttonText: { displayText: '🔍 Inicio' }, type: 1 }
+              ],
+              headerType: 1
+            })
+            break
+        }
+
+*/
+        // ----------------------------------
+
         for (const message of chatUpdate.messages) {
           if (message?.message && message.key?.remoteJid?.endsWith('@g.us')) {
             const messageTypes = Object.keys(message.message);
@@ -496,7 +534,7 @@ global.reloadHandler = async function(restatConn) {
               if (msgContent?.text) {
                 msgContent.text = await processTextMentions(msgContent.text, message.key.remoteJid);
               }
-              
+
               if (msgContent?.contextInfo?.quotedMessage) {
                 const quotedTypes = Object.keys(msgContent.contextInfo.quotedMessage);
                 for (const quotedType of quotedTypes) {
@@ -512,7 +550,7 @@ global.reloadHandler = async function(restatConn) {
       }
       return await originalHandler(chatUpdate);
     } catch (error) {
-      console.error('Error in handler interceptor:', error);
+      console.error('Error en handler interceptor:', error);
       return await originalHandler(chatUpdate);
     }
   };
@@ -592,7 +630,7 @@ Object.freeze(global.reload);
 watch(pluginFolder, global.reload);
 await global.reloadHandler();
 
-// Clear LidResolver cache every 30 minutes (more complete)
+// Limpiar caché del LidResolver cada 30 minutos (más completo)
 setInterval(() => {
   if (global.lidResolver) {
     global.lidResolver.clearCache();
@@ -611,7 +649,7 @@ setInterval(async () => {
   if (stopped === 'close' || !conn || !conn?.user) return;
   const _uptime = process.uptime() * 1000;
   const uptime = clockString(_uptime);
-  const bio = `• Active: ${uptime} | TheMystic-Bot-MD`;
+  const bio = `• Activo: ${uptime} | TheMystic-Bot-MD`;
   await conn?.updateProfileStatus(bio).catch((_) => _);
 }, 60000);
 
@@ -623,7 +661,7 @@ function clockString(ms) {
   return [d, 'd ️', h, 'h ', m, 'm ', s, 's '].map((v) => v.toString().padStart(2, 0)).join('');
 }
 
-// Ensure save on exit
+// Asegurar guardado al salir
 process.on('exit', () => {
   if (global.lidResolver?.isDirty) {
     global.lidResolver.forceSave();
@@ -631,7 +669,7 @@ process.on('exit', () => {
 });
 
 process.on('SIGINT', () => {
-  console.log('\n📁 Saving LID cache before exiting...');
+  console.log('\n📁 Guardando caché LID antes de salir...');
   if (global.lidResolver?.isDirty) {
     global.lidResolver.forceSave();
   }
@@ -666,6 +704,6 @@ async function _quickTest() {
       })]);
   }));
   const [ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find] = test;
-  global.support = {ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find};
+  global.support = { ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find };
   Object.freeze(global.support);
 }
