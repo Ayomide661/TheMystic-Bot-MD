@@ -1,14 +1,8 @@
-
-
 const handler = async (m, { conn, text }) => {
-    const datas = global
-    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-    const tradutor = _translate.plugins.owner_resetuser
-
-
     const numberPattern = /\d+/g;
     let user = '';
+    
+    // Extract user number from text or quoted message
     const numberMatches = text.match(numberPattern);
     if (numberMatches) {
         const number = numberMatches.join('');
@@ -19,22 +13,30 @@ const handler = async (m, { conn, text }) => {
             const number = quotedNumberMatches.join('');
             user = number + '@s.whatsapp.net';
         } else {
-            return conn.sendMessage(m.chat, { text: tradutor.texto1 }, { quoted: m });
+            return conn.sendMessage(m.chat, { text: "Please mention or reply to a user" }, { quoted: m });
         }
     } else {
-        return conn.sendMessage(m.chat, { text: tradutor.texto2 }, { quoted: m });
+        return conn.sendMessage(m.chat, { text: "Please provide a user number or mention" }, { quoted: m });
     }
-    const groupMetadata = m.isGroup ? await conn.groupMetadata(m.chat) : {};
-    const participants = m.isGroup ? groupMetadata.participants : [];
-    const users = m.isGroup ? participants.find(u => u.jid == user) : {};
+
+    // Check if user exists in database
     const userNumber = user.split('@')[0];
-    if (!global.global.db.data.users[user] || global.global.db.data.users[user] == '') {
-        return conn.sendMessage(m.chat, { text: `${tradutor.texto3[0]} @${userNumber} ${tradutor.texto3[1]}`, mentions: [user] }, { quoted: m });
+    if (!global.db.data.users[user] || global.db.data.users[user] == '') {
+        return conn.sendMessage(m.chat, { 
+            text: `User @${userNumber} is not registered in the database`, 
+            mentions: [user] 
+        }, { quoted: m });
     }
-    delete global.global.db.data.users[user];
-    conn.sendMessage(m.chat, { text: `${tradutor.texto4[0]} @${userNumber} ${tradutor.texto4[1]}`, mentions: [user] }, { quoted: m });
+
+    // Delete user data
+    delete global.db.data.users[user];
+    conn.sendMessage(m.chat, { 
+        text: `Successfully reset data for user @${userNumber}`, 
+        mentions: [user] 
+    }, { quoted: m });
 };
+
 handler.tags = ['owner'];
-handler.command = /(restablecerdatos|deletedatauser|resetuser)$/i;
+handler.command = /(resetdata|deletedata|resetuser)$/i;
 handler.rowner = true;
 export default handler;
