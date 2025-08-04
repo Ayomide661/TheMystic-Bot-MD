@@ -1,56 +1,68 @@
-const handler = async (m, { conn, args, participants }) => {
- const idioma = global.db.data.users[m.sender]?.language || global.defaultLenguaje;
- const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
- const tradutor = _translate.plugins.rpg_leaderboard;
+const handler = async (m, { conn, args }) => {
+  // Get language data
+  const language = global.db.data.users[m.sender]?.language || global.defaultLenguaje;
+  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${language}.json`));
+  const translator = _translate.plugins.rpg_leaderboard;
 
- const users = Object.entries(global.db.data.users)
-   .map(([key, value]) => ({
-     ...value,
-     jid: key,
-     exp: Number(value.exp) || 0,
-     limit: Number(value.limit) || 0,
-     level: Number(value.level) || 0
-   }))
-   .filter(user =>
-     user.jid &&
-     user.jid.endsWith("@s.whatsapp.net")
-   );
+  // Process user data
+  const users = Object.entries(global.db.data.users)
+    .filter(([key]) => key.endsWith('@s.whatsapp.net'))
+    .map(([jid, user]) => ({
+      jid,
+      name: conn.getName(jid),
+      exp: parseInt(user.exp) || 0,
+      limit: parseInt(user.limit) || 0,
+      level: parseInt(user.level) || 0,
+      rank: 0
+    }));
 
- const sortedExp = [...users].sort((a, b) => b.exp - a.exp); // Usar copia para no mutar 'users'
- const sortedLim = [...users].sort((a, b) => b.limit - a.limit);
- const sortedLevel = [...users].sort((a, b) => b.level - a.level);
+  // Sorting functions
+  const sortBy = (property) => [...users].sort((a, b) => b[property] - a[property]);
+  
+  const sortedExp = sortBy('exp');
+  const sortedLim = sortBy('limit');
+  const sortedLevel = sortBy('level');
 
- const len = Math.min(args[0] && !isNaN(args[0]) ? Math.max(parseInt(args[0]), 10) : 10, 100);
+  // Determine leaderboard length
+  const len = args[0] && !isNaN(args[0]) ? 
+    Math.min(Math.max(parseInt(args[0]), 10, 100) : 10;
 
- const adventurePhrases = tradutor.texto1;
- const randomPhrase = adventurePhrases[Math.floor(Math.random() * adventurePhrases.length)];
+  // Random adventure phrase
+  const randomPhrase = translator.texto1[Math.floor(Math.random() * translator.texto1.length)];
 
- const getText = (list, prop, unit) =>
-   list.slice(0, len)
-     .map(({ jid, [prop]: val }, i) => {
-      const phoneNumber = jid?.split('@')[0] || 'Desconocido';
-      return `□ ${i + 1}. @${phoneNumber}\n□ wa.me/${phoneNumber}\n□ *${val} ${unit}`;
-     })
-     .join('\n\n');
+  // Generate leaderboard section
+  const generateSection = (sortedList, type, unit) => {
+    return `
+${translator.texto2[1]} ${len} ${translator.texto2[type === 'exp' ? 7 : type === 'limit' ? 8 : 9]}
+${translator.texto2[2]} ${sortedList.findIndex(u => u.jid === m.sender) + 1} ${translator.texto2[3]} ${users.length}
 
- const body = `${tradutor.texto2[0]}\n□ ⚔️ ${randomPhrase} ⚔️\n\n` +
-   `${tradutor.texto2[1]} ${len} ${tradutor.texto2[7]}\n` +
-   `${tradutor.texto2[2]} ${sortedExp.findIndex(u => u.jid === m.sender) + 1} ${tradutor.texto2[3]} ${users.length}\n\n` +
-   `${getText(sortedExp, 'exp', tradutor.texto2[4])}\n\n` +
+${sortedList.slice(0, len).map((user, i) => 
+  `□ ${i+1}. @${user.jid.split('@')[0] || 'Unknown'}\n` +
+  `□ wa.me/${user.jid.split('@')[0]}\n` +
+  `□ *${user[type]} ${unit}*`
+).join('\n\n')}`;
+  };
 
-   `${tradutor.texto2[1]} ${len} ${tradutor.texto2[8]}\n` +
-   `${tradutor.texto2[2]} ${sortedLim.findIndex(u => u.jid === m.sender) + 1} ${tradutor.texto2[3]} ${users.length}\n\n` +
-   `${getText(sortedLim, 'limit', tradutor.texto2[5])}\n\n` +
+  // Compose full message
+  const message = `
+${translator.texto2[0]}
+□ ⚔️ ${randomPhrase} ⚔️
 
-   `${tradutor.texto2[1]} ${len} ${tradutor.texto2[9]}\n` +
-   `${tradutor.texto2[2]} ${sortedLevel.findIndex(u => u.jid === m.sender) + 1} ${tradutor.texto2[3]} ${users.length}\n\n` +
-   `${getText(sortedLevel, 'level', tradutor.texto2[6])}`.trim();
+${generateSection(sortedExp, 'exp', translator.texto2[4])}
 
- await conn.sendMessage(m.chat, { text: body, mentions: conn.parseMention(body) }, { quoted: m });
+${generateSection(sortedLim, 'limit', translator.texto2[5])}
+
+${generateSection(sortedLevel, 'level', translator.texto2[6])}
+`.trim();
+
+  // Send with mentions
+  await conn.sendMessage(m.chat, { 
+    text: message, 
+    mentions: conn.parseMention(message) 
+  }, { quoted: m });
 };
 
 handler.help = ['leaderboard'];
 handler.tags = ['xp'];
 handler.command = ['leaderboard', 'lb'];
-
 export default handler;
