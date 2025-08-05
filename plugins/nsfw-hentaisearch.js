@@ -15,7 +15,7 @@ const handler = async (m, { conn, text }) => {
     const searchResults = await searchHentai(text);
 
     if (!searchResults || searchResults.result.length === 0) {
-      const fallbackImage = `https://api.lolhuman.xyz/api/random/nsfw/hentai?apikey=YOUR_API_KEY`;
+      const fallbackImage = `https://api.lolhuman.xyz/api/random/nsfw/hentai?apikey=a0635b7b8c8b8f78abb5b348`;
       return conn.sendFile(
         m.chat,
         fallbackImage,
