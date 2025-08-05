@@ -3,48 +3,51 @@ import { Anime } from '@shineiichijo/marika';
 
 const client = new Anime();
 
+// Define translations outside the handler
+const translations = {
+  en: {
+    noQuery: 'Please provide an anime title\nExample: *!anime Attack on Titan*',
+    notFound: 'Anime not found, please try another title',
+    error: 'An error occurred, please try again later',
+    timeout: 'The anime server is taking too long to respond'
+  },
+  es: {
+    noQuery: 'Por favor ingresa un título de anime\nEjemplo: *!anime Attack on Titan*',
+    notFound: 'Anime no encontrado, prueba con otro título',
+    error: 'Ocurrió un error, por favor intenta nuevamente',
+    timeout: 'El servidor de anime está tardando demasiado'
+  }
+};
+
 const handler = async (m, { conn, text, usedPrefix }) => {
   try {
     // Get user language
-    const user = global.db.data.users[m.sender] || {};
-    const lang = user.language || 'en';
-    const translations = {
-      en: {
-        noQuery: 'Please provide an anime title\nExample: *!anime Attack on Titan*',
-        notFound: 'Anime not found, please try another title',
-        error: 'An error occurred, please try again later'
-      },
-      es: {
-        noQuery: 'Por favor ingresa un título de anime\nEjemplo: *!anime Attack on Titan*',
-        notFound: 'Anime no encontrado, prueba con otro título',
-        error: 'Ocurrió un error, por favor intenta nuevamente'
-      }
-    };
+    const lang = global.db.data.users[m.sender]?.language || 'en';
 
     if (!text) {
-      return m.reply(`❌ ${translations[lang]?.noQuery || translations.en.noQuery}`);
+      return m.reply(`❌ ${translations[lang].noQuery}`);
     }
 
     // Search with timeout (15 seconds)
     const anime = await Promise.race([
       client.searchAnime(text),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Search timeout')), 15000))
+        setTimeout(() => reject(new Error('timeout')), 15000))
     ]);
 
     if (!anime?.data?.length) {
-      return m.reply(`🔍 ${translations[lang]?.notFound || translations.en.notFound}`);
+      return m.reply(`🔍 ${translations[lang].notFound}`);
     }
 
     const result = anime.data[0];
     
-    // Get translations in parallel
+    // Get translations
     const [synopsisTrans, backgroundTrans] = await Promise.all([
-      translate(result.synopsis || '', { to: lang, autoCorrect: true }).catch(() => ({ text: 'Not available' })),
-      translate(result.background || '', { to: lang, autoCorrect: true }).catch(() => ({ text: 'Not available' }))
+      translate(result.synopsis || '', { to: lang === 'es' ? 'es' : 'en' }).catch(() => ({ text: 'Not available' })),
+      translate(result.background || '', { to: lang === 'es' ? 'es' : 'en' }).catch(() => ({ text: 'Not available' }))
     ]);
 
-    // Format the response
+    // Format response
     const animeInfo = `
 🎌 *${result.title}* ${result.year ? `(${result.year})` : ''}
 
@@ -56,15 +59,15 @@ ${backgroundTrans.text}
 
 ℹ️ *Info:*
 • Type: ${result.type}
-• Status: ${result.status.replace(/_/g, ' ')}
-• Episodes: ${result.episodes}
-• Duration: ${result.duration}
+• Status: ${result.status?.replace(/_/g, ' ') || 'Unknown'}
+• Episodes: ${result.episodes || '?'}
+• Duration: ${result.duration || 'Unknown'}
 • Rating: ${result.rating || 'N/A'}
 • Score: ${result.score || 'N/A'}
 
 🔗 *Links:*
-Trailer: ${result.trailer.url ? result.trailer.url : 'Not available'}
-More Info: ${result.url}`;
+${result.trailer?.url ? `Trailer: ${result.trailer.url}` : ''}
+More Info: ${result.url || 'Not available'}`;
 
     await conn.sendFile(
       m.chat,
@@ -77,9 +80,9 @@ More Info: ${result.url}`;
   } catch (error) {
     console.error('Anime command error:', error);
     const lang = global.db.data.users[m.sender]?.language || 'en';
-    const errorMsg = error.message.includes('timeout') ?
-      '⏳ The anime server is taking too long to respond. Please try again later.' :
-      `❌ ${translations[lang]?.error || translations.en.error}`;
+    const errorMsg = error.message.includes('timeout') 
+      ? `⏳ ${translations[lang].timeout}`
+      : `❌ ${translations[lang].error}`;
     
     m.reply(errorMsg);
   }
