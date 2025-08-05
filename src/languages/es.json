@@ -3335,49 +3335,64 @@
                 "╚═════════════════⬣"
             ]
         },
-        "rpg_crime": {
-            "texto1": "『🚓』THE POLICE CAUGHT YOU IN THE ACT, YOU'RE IN TROUBLE, YOU LOST :",
-            "texto2": [
-                "💎 Diamonds",
-                "👾 Mystic Coins"
-            ],
-            "texto3": [
-                "《💰》You stole from",
-                "an amount of "
-            ],
-            "texto4": [
-                "You robbed a Bank 🏦 and Obtained",
-                "Negotiated with the mafia boss and Obtained :",
-                "Almost got caught by the police, but managed to steal a valuable amount of 💰. Be careful next time! You obtained:",
-                "The mobsters paid you :",
-                "You stole from the Group Administrator",
-                "You stole from your president a sum of :",
-                "You stole from a famous person a value of :",
-                "You sneakily entered the museum and stole a valuable artwork:",
-                "You infiltrated a jewelry store and obtained an impressive loot:",
-                "You became the most wanted thief in the country, obtained:",
-                "You stole a truck full of valuable products and obtained",
-                "You robbed a train and got",
-                "You stole a plane loaded with goods and obtained",
-                "You posed as a millionaire to steal a unique jewel, obtained",
-                "You broke into an art collector's house and stole an invaluable piece, obtained",
-                "You kidnapped a businessman and got an important ransom:",
-                "You threatened a politician and obtained a large sum of money:",
-                "You bribed a police officer to get valuable information, succeeded"
-            ],
-            "texto5": [
-                "THE POLICE SAW YOU 🙀👮‍♂️ YOU LOST",
-                "You went to rob a bank 🏦 and your helper turned you in to the police, you lost",
-                "You couldn't escape the police 🚔🤡, you lost :",
-                "You tried to rob a casino, but got caught, you lost",
-                "You were caught trying to rob a store, you lost :",
-                "The alarm went off as you were trying to rob a warehouse, you lost",
-                "The owner of the place caught you red-handed, you lost",
-                "You were caught trying to hack a bank account, you lost",
-                "You were caught trying to bribe an officer, you lost",
-                "Your plan to blackmail a businessman went wrong, you lost"
-            ]
-        },
+        {
+    "rpg_crime": {
+      "antiCheat": "『💎』YOU DON'T HAVE ENOUGH DIAMONDS TO RISK THIS CRIME!",
+      "texto1": "『⏳』COOLDOWN ACTIVE! TRY AGAIN IN:",
+      "texto2": [
+        "💎 Diamonds",
+        "👾 Mystic Coins"
+      ],
+      "texto3": [
+        "《💰》You stole from",
+        "an amount of "
+      ],
+      "texto4": [
+        "You robbed a Bank 🏦 and Obtained",
+        "Negotiated with the mafia boss and Obtained :",
+        "Almost got caught by the police, but managed to steal a valuable amount of 💰. Be careful next time! You obtained:",
+        "The mobsters paid you :",
+        "You stole from the Group Administrator",
+        "You stole from your president a sum of :",
+        "You stole from a famous person a value of :",
+        "You sneakily entered the museum and stole a valuable artwork:",
+        "You infiltrated a jewelry store and obtained an impressive loot:",
+        "You became the most wanted thief in the country, obtained:",
+        "You stole a truck full of valuable products and obtained",
+        "You robbed a train and got",
+        "You stole a plane loaded with goods and obtained",
+        "You posed as a millionaire to steal a unique jewel, obtained",
+        "You broke into an art collector's house and stole an invaluable piece, obtained",
+        "You kidnapped a businessman and got an important ransom:",
+        "You threatened a politician and obtained a large sum of money:",
+        "You bribed a police officer to get valuable information, succeeded"
+      ],
+      "texto5": [
+        "THE POLICE SAW YOU 🙀👮‍♂️ YOU LOST",
+        "You went to rob a bank 🏦 and your helper turned you in to the police, you lost",
+        "You couldn't escape the police 🚔🤡, you lost :",
+        "You tried to rob a casino, but got caught, you lost",
+        "You were caught trying to rob a store, you lost :",
+        "The alarm went off as you were trying to rob a warehouse, you lost",
+        "The owner of the place caught you red-handed, you lost",
+        "You were caught trying to hack a bank account, you lost",
+        "You were caught trying to bribe an officer, you lost",
+        "Your plan to blackmail a businessman went wrong, you lost"
+      ],
+      "error": "『❌』CRIME FAILED UNEXPECTEDLY!",
+      "robSuccess": [
+        "『💰』CRIME SUCCESSFUL!",
+        "『🦹』PERFECT HEIST!",
+        "『🎭』CLEAN GETAWAY!"
+      ],
+      "robFail": [
+        "『🚓』BUSTED BY THE COPS!",
+        "『👮』CAUGHT RED-HANDED!",
+        "『🚨』ALARM TRIGGERED!"
+      ]
+    }
+  }
+};
         "rpg_daily": {
             "texto1": [
                 "YOU'VE ALREADY CLAIMED YOUR GIFT 🎁\nRETURN IN",
