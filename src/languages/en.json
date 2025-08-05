@@ -3298,6 +3298,30 @@
                 "<quantity>*"
             ]
         },
+        "rpg_shop":  {
+    "shopTitle": "🏪 RPG SHOP 🏪",
+    "shopHelp": "Type /buy <item> [amount] to purchase items\nExample: /buy potion 5",
+    "categories": {
+      "currency": "💰 CURRENCY",
+      "resource": "🛠️ RESOURCES",
+      "consumable": "🥤 CONSUMABLES",
+      "tool": "⚒️ TOOLS",
+      "box": "📦 BOXES",
+      "pet": "🐾 PETS",
+      "plant": "🌿 PLANTS",
+      "seed": "🌱 SEEDS",
+      "special": "🎯 SPECIAL"
+    },
+    "texto1": [
+      "Purchase successful!",
+      "You obtained",
+      "XP deducted",
+      "Thank you for your purchase!"
+    ],
+    "texto2": "You don't have enough XP to buy",
+    "texto3": "You need more XP!",
+    "texto4": "Item {} not found in the shop!"
+  },
         "rpg_berburu_casar": {
             "texto1": "PLEASE REST A MOMENT BEFORE CONTINUING HUNTING\n\n⫹⫺ TIME",
             "texto2": [
