@@ -260,156 +260,244 @@ global.rpgg = { // Emojis only
     if (!results.length) return '';
     else return emott[results[0][0]];
   }};
-global.rpgshop = { // Shop
+global.rpgshop = {
+  // Function to get item info
+  getItem(item) {
+    item = item.toLowerCase();
+    return this.items[item] || null;
+  },
+  
+  // Function to list items by category
+  listItems(category) {
+    if (category) {
+      return Object.entries(this.items)
+        .filter(([_, item]) => item.type === category)
+        .map(([key, item]) => ({ id: key, ...item }));
+    }
+    return Object.entries(this.items).map(([key, item]) => ({ id: key, ...item }));
+  },
+
+  // All shop items with categories and prices
+  items: {
+    // Currencies
+    limit: { name: '💎 Diamond', price: 350, type: 'currency' },
+    diamond: { name: '💎 Diamond', price: 350, type: 'currency' },
+    joincount: { name: '🪙 Token', price: 200, type: 'currency' },
+    money: { name: '👾 MysticCoins', price: 150, type: 'currency' },
+    tiketcoin: { name: '🎫 Mystic Tickets', price: 500, type: 'currency' },
+    emerald: { name: '💚 Emerald', price: 300, type: 'currency' },
+    berlian: { name: '♦️ Jewel', price: 400, type: 'currency' },
+    kyubi: { name: '🌀 Magic', price: 450, type: 'currency' },
+    gold: { name: '👑 Gold', price: 250, type: 'currency' },
+    
+    // Basic Resources
+    wood: { name: '🪵 Wood', price: 100, type: 'resource' },
+    rock: { name: '🪨 Rock', price: 120, type: 'resource' },
+    iron: { name: '⛓️ Iron', price: 250, type: 'resource' },
+    coal: { name: '⚱️ Coal', price: 180, type: 'resource' },
+    string: { name: '🕸️ String', price: 150, type: 'resource' },
+    trash: { name: '🗑 Trash', price: 50, type: 'resource' },
+    batu: { name: '🥌 Stone', price: 130, type: 'resource' },
+    botol: { name: '🍶 Bottle', price: 80, type: 'resource' },
+    kaleng: { name: '🥫 Can', price: 70, type: 'resource' },
+    kardus: { name: '🪧 Cardboard', price: 60, type: 'resource' },
+    
+    // Advanced Resources
+    emasbatang: { name: '〽️ Gold Bar', price: 800, type: 'resource' },
+    emasbiasa: { name: '🧭 Common Gold', price: 600, type: 'resource' },
+    eleksirb: { name: '💡 Electricity', price: 700, type: 'resource' },
+    kayu: { name: '🛷 Super Wood', price: 500, type: 'resource' },
+    
+    // Consumables
+    potion: { name: '🥤 Potion', price: 200, type: 'consumable' },
+    stamina: { name: '✨ Energy', price: 150, type: 'consumable' },
+    aqua: { name: '💧 Water', price: 100, type: 'consumable' },
+    petFood: { name: '🍖 Pet Food', price: 300, type: 'consumable' },
+    makananpet: { name: '🍱🥩 Pet Foods', price: 350, type: 'consumable' },
+    makanancentaur: { name: '🐐🥩 Centaur Food', price: 400, type: 'consumable' },
+    makanangriffin: { name: '🦅🥩 Bird Food', price: 400, type: 'consumable' },
+    makanankyubi: { name: '🌀🥩 Magic Food', price: 450, type: 'consumable' },
+    makanannaga: { name: '🐉🥩 Dragon Food', price: 500, type: 'consumable' },
+    makananphonix: { name: '🕊️🥩 Phoenix Food', price: 450, type: 'consumable' },
+    
+    // Tools & Weapons
+    sword: { name: '⚔️ Sword', price: 1000, type: 'tool' },
+    pancing: { name: '🎣 Fishing Rod', price: 750, type: 'tool' },
+    pancingan: { name: '🪝 Hook', price: 300, type: 'tool' },
+    umpan: { name: '🪱 Bait', price: 150, type: 'tool' },
+    pickaxe: { name: '⛏️ Pickaxe', price: 600, type: 'tool' },
+    armor: { name: '🥼 Armor', price: 1200, type: 'tool' },
+    bow: { name: '🏹 Bow', price: 900, type: 'tool' },
+    magicwand: { name: '⚕️ Magic Wand', price: 1500, type: 'tool' },
+    
+    // Boxes & Containers
+    common: { name: '📦 Common Box', price: 400, type: 'box' },
+    uncommon: { name: '🥡 Uncommon Box', price: 800, type: 'box' },
+    mythic: { name: '🗳️ Mythic Box', price: 1500, type: 'box' },
+    legendary: { name: '🎁 Legendary Box', price: 3000, type: 'box' },
+    pet: { name: '📫 Pet Box', price: 2000, type: 'box' },
+    gardenboxs: { name: '💐 Garden Box', price: 1200, type: 'box' },
+    
+    // Pets & Creatures
+    kucing: { name: '🐈 Cat', price: 2500, type: 'pet' },
+    fox: { name: '🦊 Fox', price: 3000, type: 'pet' },
+    wolf: { name: '🐺 Wolf', price: 3500, type: 'pet' },
+    centaur: { name: '🐐 Centaur', price: 4000, type: 'pet' },
+    griffin: { name: '🦅 Bird', price: 4500, type: 'pet' },
+    naga: { name: '🐉 Dragon', price: 5000, type: 'pet' },
+    kuda: { name: '🐎 Horse', price: 3000, type: 'pet' },
+    phonix: { name: '🕊️ Phoenix', price: 4500, type: 'pet' },
+    anjing: { name: '🐶 Dog', price: 2500, type: 'pet' },
+    rubah: { name: '🦊🌫️ Great Fox', price: 5000, type: 'pet' },
+    serigala: { name: '🐺🌫️ Super Wolf', price: 5500, type: 'pet' },
+    
+    // Plants & Seeds
+    anggur: { name: '🍇 Grape', price: 300, type: 'plant' },
+    apel: { name: '🍎 Apple', price: 350, type: 'plant' },
+    jeruk: { name: '🍊 Orange', price: 320, type: 'plant' },
+    mangga: { name: '🥭 Mango', price: 380, type: 'plant' },
+    pisang: { name: '🍌 Banana', price: 300, type: 'plant' },
+    bibitanggur: { name: '🌾🍇 Grape Seeds', price: 150, type: 'seed' },
+    bibitapel: { name: '🌾🍎 Apple Seeds', price: 180, type: 'seed' },
+    bibitjeruk: { name: '🌾🍊 Orange Seeds', price: 160, type: 'seed' },
+    bibitmangga: { name: '🌾🥭 Mango Seeds', price: 200, type: 'seed' },
+    bibitpisang: { name: '🌾🍌 Banana Seeds', price: 150, type: 'seed' },
+    
+    // Special Items
+    healtmonster: { name: '💵 Bills', price: 1000, type: 'special' },
+    emas: { name: '🪅 Piñata', price: 1200, type: 'special' },
+    sampah: { name: '🗑🌫️ Super Trash', price: 800, type: 'special' },
+    exp: { name: '⚡ Experience', price: 500, type: 'special' }
+  },
+
+  // Original emoticon function (kept for backward compatibility)
   emoticon(string) {
     string = string.toLowerCase();
-    const emottt = {
-      exp: '⚡ Experience',
-      limit: '💎 Diamond',
-      diamond: '💎 Diamond',
-      joincount: '🪙 Token',
-      emerald: '💚 Emerald',
-      berlian: '♦️ Jewel',
-      kyubi: '🌀 Magic',
-      gold: '👑 Gold',
-      money: '👾 MysticCoins',
-      tiketcoin: '🎫 mystic Tickets',
-      stamina: '✨ Energy',
-      potion: '🥤 Potion',
-      aqua: '💧 Water',
-      trash: '🗑 Trash',
-      wood: '🪵 Wood',
-      rock: '🪨 Rock',
-      batu: '🥌 Stone',
-      string: '🕸️ String',
-      iron: '⛓️ Iron',
-      coal: '⚱️ Coal',
-      botol: '🍶 Bottle',
-      kaleng: '🥫 Can',
-      kardus: '🪧 Cardboard',
-      eleksirb: '💡 Electricity',
-      emasbatang: '〽️ Gold Bar',
-      emasbiasa: '🧭 Common Gold',
-      rubah: '🦊🌫️ Great Fox',
-      sampah: '🗑🌫️ Super Trash',
-      serigala: '🐺🌫️ Super Wolf',
-      kayu: '🛷 Super Wood',
-      sword: '⚔️ Sword',
-      umpan: '🪱 Bait',
-      healtmonster: '💵 Bills',
-      emas: '🪅 Piñata',
-      pancingan: '🪝 Hook',
-      pancing: '🎣 Fishing Rod',
-      common: '📦 Common Box',
-      uncoommon: '🥡 Uncommon Box',
-      mythic: '🗳️ Mythic Box',
-      pet: '📫 Pet Box', // ?
-      gardenboxs: '💐 Garden Box', // ?
-      legendary: '🎁 Legendary Box',
-      anggur: '🍇 Grape',
-      apel: '🍎 Apple',
-      jeruk: '🍊 Orange',
-      mangga: '🥭 Mango',
-      pisang: '🍌 Banana',
-      bibitanggur: '🌾🍇 Grape Seeds',
-      bibitapel: '🌾🍎 Apple Seeds',
-      bibitjeruk: '🌾🍊 Orange Seeds',
-      bibitmangga: '🌾🥭 Mango Seeds',
-      bibitpisang: '🌾🍌 Banana Seeds',
-      centaur: '🐐 Centaur',
-      griffin: '🦅 Bird',
-      kucing: '🐈 Cat',
-      naga: '🐉 Dragon',
-      fox: '🦊 Fox',
-      kuda: '🐎 Horse',
-      phonix: '🕊️ Phoenix',
-      wolf: '🐺 Wolf',
-      anjing: '🐶 Dog',
-      petFood: '🍖 Pet Food', // ?
-      makanancentaur: '🐐🥩 Centaur Food',
-      makanangriffin: '🦅🥩 Bird Food',
-      makanankyubi: '🌀🥩 Magic Food',
-      makanannaga: '🐉🥩 Dragon Food',
-      makananpet: '🍱🥩 Pet Foods',
-      makananphonix: '🕊️🥩 Phoenix Food',
-    };
+    const item = this.getItem(string);
+    return item ? item.name : '';
+  }
+};
     const results = Object.keys(emottt).map((v) => [v, new RegExp(v, 'gi')]).filter((v) => v[1].test(string));
     if (!results.length) return '';
     else return emottt[results[0][0]];
   }};
-global.rpgshopp = { // Shop
+global.rpgshop = {
+  // Function to get item info
+  getItem(item) {
+    item = item.toLowerCase();
+    return this.items[item] || null;
+  },
+  
+  // Function to list items by category
+  listItems(category) {
+    if (category) {
+      return Object.entries(this.items)
+        .filter(([_, item]) => item.type === category)
+        .map(([key, item]) => ({ id: key, ...item }));
+    }
+    return Object.entries(this.items).map(([key, item]) => ({ id: key, ...item }));
+  },
+
+  // All shop items with categories and prices
+  items: {
+    // Currencies
+    limit: { name: '💎 Diamond', price: 350, type: 'currency' },
+    diamond: { name: '💎 Diamond', price: 350, type: 'currency' },
+    joincount: { name: '🪙 Token', price: 200, type: 'currency' },
+    money: { name: '👾 MysticCoins', price: 150, type: 'currency' },
+    tiketcoin: { name: '🎫 Mystic Tickets', price: 500, type: 'currency' },
+    emerald: { name: '💚 Emerald', price: 300, type: 'currency' },
+    berlian: { name: '♦️ Jewel', price: 400, type: 'currency' },
+    kyubi: { name: '🌀 Magic', price: 450, type: 'currency' },
+    gold: { name: '👑 Gold', price: 250, type: 'currency' },
+    
+    // Basic Resources
+    wood: { name: '🪵 Wood', price: 100, type: 'resource' },
+    rock: { name: '🪨 Rock', price: 120, type: 'resource' },
+    iron: { name: '⛓️ Iron', price: 250, type: 'resource' },
+    coal: { name: '⚱️ Coal', price: 180, type: 'resource' },
+    string: { name: '🕸️ String', price: 150, type: 'resource' },
+    trash: { name: '🗑 Trash', price: 50, type: 'resource' },
+    batu: { name: '🥌 Stone', price: 130, type: 'resource' },
+    botol: { name: '🍶 Bottle', price: 80, type: 'resource' },
+    kaleng: { name: '🥫 Can', price: 70, type: 'resource' },
+    kardus: { name: '🪧 Cardboard', price: 60, type: 'resource' },
+    
+    // Advanced Resources
+    emasbatang: { name: '〽️ Gold Bar', price: 800, type: 'resource' },
+    emasbiasa: { name: '🧭 Common Gold', price: 600, type: 'resource' },
+    eleksirb: { name: '💡 Electricity', price: 700, type: 'resource' },
+    kayu: { name: '🛷 Super Wood', price: 500, type: 'resource' },
+    
+    // Consumables
+    potion: { name: '🥤 Potion', price: 200, type: 'consumable' },
+    stamina: { name: '✨ Energy', price: 150, type: 'consumable' },
+    aqua: { name: '💧 Water', price: 100, type: 'consumable' },
+    petFood: { name: '🍖 Pet Food', price: 300, type: 'consumable' },
+    makananpet: { name: '🍱🥩 Pet Foods', price: 350, type: 'consumable' },
+    makanancentaur: { name: '🐐🥩 Centaur Food', price: 400, type: 'consumable' },
+    makanangriffin: { name: '🦅🥩 Bird Food', price: 400, type: 'consumable' },
+    makanankyubi: { name: '🌀🥩 Magic Food', price: 450, type: 'consumable' },
+    makanannaga: { name: '🐉🥩 Dragon Food', price: 500, type: 'consumable' },
+    makananphonix: { name: '🕊️🥩 Phoenix Food', price: 450, type: 'consumable' },
+    
+    // Tools & Weapons
+    sword: { name: '⚔️ Sword', price: 1000, type: 'tool' },
+    pancing: { name: '🎣 Fishing Rod', price: 750, type: 'tool' },
+    pancingan: { name: '🪝 Hook', price: 300, type: 'tool' },
+    umpan: { name: '🪱 Bait', price: 150, type: 'tool' },
+    pickaxe: { name: '⛏️ Pickaxe', price: 600, type: 'tool' },
+    armor: { name: '🥼 Armor', price: 1200, type: 'tool' },
+    bow: { name: '🏹 Bow', price: 900, type: 'tool' },
+    magicwand: { name: '⚕️ Magic Wand', price: 1500, type: 'tool' },
+    
+    // Boxes & Containers
+    common: { name: '📦 Common Box', price: 400, type: 'box' },
+    uncommon: { name: '🥡 Uncommon Box', price: 800, type: 'box' },
+    mythic: { name: '🗳️ Mythic Box', price: 1500, type: 'box' },
+    legendary: { name: '🎁 Legendary Box', price: 3000, type: 'box' },
+    pet: { name: '📫 Pet Box', price: 2000, type: 'box' },
+    gardenboxs: { name: '💐 Garden Box', price: 1200, type: 'box' },
+    
+    // Pets & Creatures
+    kucing: { name: '🐈 Cat', price: 2500, type: 'pet' },
+    fox: { name: '🦊 Fox', price: 3000, type: 'pet' },
+    wolf: { name: '🐺 Wolf', price: 3500, type: 'pet' },
+    centaur: { name: '🐐 Centaur', price: 4000, type: 'pet' },
+    griffin: { name: '🦅 Bird', price: 4500, type: 'pet' },
+    naga: { name: '🐉 Dragon', price: 5000, type: 'pet' },
+    kuda: { name: '🐎 Horse', price: 3000, type: 'pet' },
+    phonix: { name: '🕊️ Phoenix', price: 4500, type: 'pet' },
+    anjing: { name: '🐶 Dog', price: 2500, type: 'pet' },
+    rubah: { name: '🦊🌫️ Great Fox', price: 5000, type: 'pet' },
+    serigala: { name: '🐺🌫️ Super Wolf', price: 5500, type: 'pet' },
+    
+    // Plants & Seeds
+    anggur: { name: '🍇 Grape', price: 300, type: 'plant' },
+    apel: { name: '🍎 Apple', price: 350, type: 'plant' },
+    jeruk: { name: '🍊 Orange', price: 320, type: 'plant' },
+    mangga: { name: '🥭 Mango', price: 380, type: 'plant' },
+    pisang: { name: '🍌 Banana', price: 300, type: 'plant' },
+    bibitanggur: { name: '🌾🍇 Grape Seeds', price: 150, type: 'seed' },
+    bibitapel: { name: '🌾🍎 Apple Seeds', price: 180, type: 'seed' },
+    bibitjeruk: { name: '🌾🍊 Orange Seeds', price: 160, type: 'seed' },
+    bibitmangga: { name: '🌾🥭 Mango Seeds', price: 200, type: 'seed' },
+    bibitpisang: { name: '🌾🍌 Banana Seeds', price: 150, type: 'seed' },
+    
+    // Special Items
+    healtmonster: { name: '💵 Bills', price: 1000, type: 'special' },
+    emas: { name: '🪅 Piñata', price: 1200, type: 'special' },
+    sampah: { name: '🗑🌫️ Super Trash', price: 800, type: 'special' },
+    exp: { name: '⚡ Experience', price: 500, type: 'special' }
+  },
+
+  // Original emoticon function (kept for backward compatibility)
   emoticon(string) {
     string = string.toLowerCase();
-    const emotttt = {
-      exp: '⚡',
-      limit: '💎',
-      diamond: '💎+',
-      joincount: '🪙',
-      emerald: '💚',
-      berlian: '♦️',
-      kyubi: '🌀',
-      gold: '👑',
-      money: '👾',
-      tiketcoin: '🎫',
-      stamina: '✨',
-      potion: '🥤',
-      aqua: '💧',
-      trash: '🗑',
-      wood: '🪵',
-      rock: '🪨',
-      batu: '🥌',
-      string: '🕸️',
-      iron: '⛓️',
-      coal: '⚱️',
-      botol: '🍶',
-      kaleng: '🥫',
-      kardus: '🪧',
-      eleksirb: '💡',
-      emasbatang: '〽️',
-      emasbiasa: '🧭',
-      rubah: '🦊🌫️',
-      sampah: '🗑🌫️',
-      serigala: '🐺🌫️',
-      kayu: '🛷',
-      sword: '⚔️',
-      umpan: '🪱',
-      healtmonster: '💵',
-      emas: '🪅',
-      pancingan: '🪝',
-      pancing: '🎣',
-      common: '📦',
-      uncoommon: '🥡',
-      mythic: '🗳️',
-      pet: '📫', // ?
-      gardenboxs: '💐', // ?
-      legendary: '🎁',
-      anggur: '🍇',
-      apel: '🍎',
-      jeruk: '🍊',
-      mangga: '🥭',
-      pisang: '🍌',
-      bibitanggur: '🌾🍇',
-      bibitapel: '🌾🍎',
-      bibitjeruk: '🌾🍊',
-      bibitmangga: '🌾🥭',
-      bibitpisang: '🌾🍌',
-      centaur: '🐐',
-      griffin: '🦅',
-      kucing: '🐈',
-      naga: '🐉',
-      fox: '🦊',
-      kuda: '🐎',
-      phonix: '🕊️',
-      wolf: '🐺',
-      anjing: '🐶',
-      petFood: '🍖', // ?
-      makanancentaur: '🐐🥩',
-      makanangriffin: '🦅🥩',
-      makanankyubi: '🌀🥩',
-      makanannaga: '🐉🥩',
-      makananpet: '🍱🥩',
-      makananphonix: '🕊️🥩',
-    };
+    const item = this.getItem(string);
+    return item ? item.name : '';
+  }
+};
     const results = Object.keys(emotttt).map((v) => [v, new RegExp(v, 'gi')]).filter((v) => v[1].test(string));
     if (!results.length) return '';
     else return emotttt[results[0][0]];
