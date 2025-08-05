@@ -4,35 +4,34 @@ import { fileURLToPath } from 'url';
 import fs from 'fs'; 
 import moment from 'moment-timezone';
 
+// Load environment variables if using dotenv (optional)
+// import 'dotenv/config';
+
 global.botnumber = "";
 global.confirmCode = "";
 global.authFile = `MysticSession`;
-
-// Set to true if the Bot responds to its commands with other commands.
-// Set to false to use the Bot from the same number as the Bot itself.
-// m.isBaileys error marked as false is a temporary fix
 global.isBaileysFail = false;
-
 global.defaultLenguaje = 'en';
 
-// Owners: [number, name (optional), isPrimaryOwner (optional)]
-global.owner = [
-  ['2348108629978']
-];
+// Auto-detect owner(s) from environment variable or default
+const OWNER_NUMBERS = process.env.OWNER_NUMBERS?.split(',') || ['2348108629978'];
+const SUIT_TAG_NUMBERS = process.env.SUIT_TAG_NUMBERS?.split(',') || OWNER_NUMBERS;
+const PREMIUM_NUMBERS = process.env.PREMIUM_NUMBERS?.split(',') || OWNER_NUMBERS;
+const MODS_NUMBERS = process.env.MODS_NUMBERS?.split(',') || OWNER_NUMBERS;
 
-// Superuser tags
-global.suittag = ['2348108629978'];
-// Premium users
-global.prems = ['2348108629978'];
+// Set global variables
+global.owner = OWNER_NUMBERS.map(number => [number.trim()]);
+global.suittag = SUIT_TAG_NUMBERS.map(number => number.trim());
+global.prems = PREMIUM_NUMBERS.map(number => number.trim());
+global.mods = MODS_NUMBERS.map(number => number.trim());
 
-// Base Rest API
+// Rest of your configuration remains the same
 global.BASE_API_DELIRIUS = "https://delirius-apiofc.vercel.app";
-
 global.packname = 'Sticker';
 global.author = 'Ayphish';
 global.wm = 'The Mystic - Bot';
 global.titulowm = 'Mystic Bot';
-global.titulowm2 = `Mystic Bot`
+global.titulowm2 = `Mystic Bot`;
 global.igfg = 'The Mystic';
 global.wait = '*_[ ⏳ ] Loading..._*';
 
@@ -42,9 +41,7 @@ global.imagen3 = fs.readFileSync('./src/assets/images/menu/languages/fr/menu.png
 global.imagen4 = fs.readFileSync('./src/assets/images/menu/languages/en/menu.png');
 global.imagen5 = fs.readFileSync('./src/assets/images/menu/languages/ru/menu.png');
 
-global.mods = ['2348108629978'];
-
-//* *******Time***************
+// Time configuration
 global.d = new Date(new Date + 3600000);
 global.locale = 'en';
 global.dia = d.toLocaleDateString(locale, { weekday: 'long' });
@@ -52,7 +49,6 @@ global.fecha = d.toLocaleDateString('es', { day: 'numeric', month: 'numeric', ye
 global.mes = d.toLocaleDateString('es', { month: 'long' });
 global.año = d.toLocaleDateString('es', { year: 'numeric' });
 global.tiempo = d.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true });
-//* ****************************
 
 global.wm2 = `${dia} ${fecha}\nThe Mystic - Bot`;
 global.gt = 'The Mystic - Bot';
@@ -63,7 +59,7 @@ global.mysticbot = 'https://github.com/BrunoSobrino/TheMystic-Bot-MD';
 global.waitt = '*_[ ⏳ ] Loading..._*';
 global.waittt = '*_[ ⏳ ] Loading..._*';
 global.waitttt = '*_[ ⏳ ] Loading..._*';
-global.nomorown = '2348108629978';
+global.nomorown = OWNER_NUMBERS[0] || '2348108629978';
 global.pdoc = [
   'application/vnd.openxmlformats-officedocument.presentationml.presentation', 
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
@@ -71,6 +67,8 @@ global.pdoc = [
   'application/pdf', 
   'application/zip'
 ];
+
+// Menu styling
 global.cmenut = '❖––––––『';
 global.cmenub = '┊✦ ';
 global.cmenuf = '╰━═┅═━––––––๑\n';
@@ -107,7 +105,6 @@ global.flaaa = [
   'https://www6.flamingtext.com/net-fu/proxy_form.cgi?&imageoutput=true&script=sketch-name&doScale=true&scaleWidth=800&scaleHeight=500&fontsize=100&fillTextType=1&fillTextPattern=Warning!&text=',
   'https://www6.flamingtext.com/net-fu/proxy_form.cgi?&imageoutput=true&script=sketch-name&doScale=true&scaleWidth=800&scaleHeight=500&fontsize=100&fillTextType=1&fillTextPattern=Warning!&fillColo...'
 ];
-//* ************************
 
 const file = fileURLToPath(import.meta.url);
 watchFile(file, () => {
