@@ -45,7 +45,7 @@ const handler = async (m, { conn, command, args }) => {
 
       conn.reply(m.chat, successMsg, m);
     } else {
-      const failMsg = `${tradutor.texto2 || 'You don't have enough XP to buy'} *${count}* ${item.name} ${
+      const failMsg = `${tradutor.texto2 || "You don't have enough XP to buy"} *${count}* ${item.name} ${
         tradutor.texto3 || 'You need more XP!'
       }`;
       conn.reply(m.chat, failMsg, m);
@@ -70,7 +70,6 @@ async function showShop(m, conn, tradutor) {
     special: '🎯 SPECIAL'
   };
 
-  // Group items by category
   global.rpgshop.listItems().forEach(item => {
     if (!itemsByCategory[item.type]) {
       itemsByCategory[item.type] = [];
@@ -78,7 +77,6 @@ async function showShop(m, conn, tradutor) {
     itemsByCategory[item.type].push(item);
   });
 
-  // Build shop message
   let shopMessage = `${tradutor.shopTitle || '🏪 RPG SHOP 🏪'}\n\n`;
 
   for (const [category, items] of Object.entries(itemsByCategory)) {
@@ -94,7 +92,6 @@ async function showShop(m, conn, tradutor) {
   }
 
   shopMessage += tradutor.shopHelp || 'Type /buy <item> [amount] to purchase items';
-
   conn.reply(m.chat, shopMessage, m);
 }
 
