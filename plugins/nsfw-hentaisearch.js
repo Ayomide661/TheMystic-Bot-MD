@@ -12,15 +12,14 @@ const handler = async (m, { conn, text }) => {
     if (!global.db.data.chats[m.chat].modohorny && m.isGroup) throw tradutor.texto1;
     if (!text) throw tradutor.texto2;
 
-    const searchResults = await searchHentai(text);
+    const searchResults = await searchHentaiTV(text);
 
     if (!searchResults || searchResults.result.length === 0) {
-      const fallbackImage = `https://api.lolhuman.xyz/api/random/nsfw/hentai?apikey=a0635b7b8c8b8f78abb5b348`;
       return conn.sendFile(
         m.chat,
-        fallbackImage,
-        'fallback.jpg',
-        tradutor.texto3,
+        './media/hentai_not_found.jpg', // <- change this to your local fallback image path
+        'notfound.jpg',
+        tradutor.texto3 || 'No results found on hentai.tv.',
         m
       );
     }
@@ -36,8 +35,7 @@ ${i + 1}. *_${v.title}_*
 
   } catch (error) {
     console.error(error);
-    const fallbackImage = `https://api.lolhuman.xyz/api/random/nsfw/hentai?apikey=YOUR_API_KEY`;
-    await conn.sendFile(m.chat, fallbackImage, 'error.jpg', 'An error occurred while searching.', m);
+    return m.reply('An error occurred while searching hentai.tv');
   }
 };
 
@@ -46,7 +44,8 @@ handler.help = ['hentaisearch'];
 handler.command = /^(hentaisearch|searchhentai)$/i;
 export default handler;
 
-async function searchHentai(search) {
+// Scraper for hentai.tv
+async function searchHentaiTV(search) {
   try {
     const { data } = await axios.get('https://hentai.tv/?s=' + encodeURIComponent(search), {
       headers: {
@@ -75,8 +74,7 @@ async function searchHentai(search) {
 
     return {
       coder: 'rem-comp',
-      result: results,
-      warning: 'Copyright © 2023'
+      result: results
     };
 
   } catch (error) {
