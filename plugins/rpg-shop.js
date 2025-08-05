@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const xpperlimit = 350; // Default price if item doesn't have one
+const xpperlimit = 350;
 
 const handler = async (m, { conn, command, args }) => {
   const datas = global;
@@ -8,7 +8,6 @@ const handler = async (m, { conn, command, args }) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
   const tradutor = _translate.plugins.rpg_shop;
 
-  // Show shop if no arguments
   if (!args[0] || args[0] === 'list') {
     return showShop(m, conn, tradutor);
   }
@@ -45,6 +44,17 @@ ${tradutor.texto1[3]}`, m);
 
 async function showShop(m, conn, tradutor) {
   const itemsByCategory = {};
+  const defaultCategories = {
+    currency: '💰 CURRENCY',
+    resource: '🛠️ RESOURCES',
+    consumable: '🥤 CONSUMABLES',
+    tool: '⚒️ TOOLS',
+    box: '📦 BOXES',
+    pet: '🐾 PETS',
+    plant: '🌿 PLANTS',
+    seed: '🌱 SEEDS',
+    special: '🎯 SPECIAL'
+  };
 
   // Group items by category
   global.rpgshop.listItems().forEach(item => {
@@ -55,17 +65,21 @@ async function showShop(m, conn, tradutor) {
   });
 
   // Build shop message
-  let shopMessage = `${tradutor.shopTitle}\n\n`;
+  let shopMessage = `${tradutor.shopTitle || '🏪 RPG SHOP 🏪'}\n\n`;
 
   for (const [category, items] of Object.entries(itemsByCategory)) {
-    shopMessage += `*${tradutor.categories[category] || category.toUpperCase()}*\n`;
+    const categoryName = (tradutor.categories && tradutor.categories[category]) || 
+                        defaultCategories[category] || 
+                        category.toUpperCase();
+    
+    shopMessage += `*${categoryName}*\n`;
     shopMessage += items.map(item => 
       `➠ ${item.name} (${item.id}): ${item.price} XP`
     ).join('\n');
     shopMessage += '\n\n';
   }
 
-  shopMessage += tradutor.shopHelp;
+  shopMessage += tradutor.shopHelp || 'Type /buy <item> [amount] to purchase items';
 
   conn.reply(m.chat, shopMessage, m);
 }
@@ -73,7 +87,6 @@ async function showShop(m, conn, tradutor) {
 handler.help = ['buy <item> [amount]', 'buy list', 'shop'];
 handler.tags = ['rpg'];
 handler.command = ['buy', 'buyall', 'shop'];
-
 handler.disabled = false;
 
 export default handler;
