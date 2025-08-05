@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const pluginsDir = path.join(__dirname, '../plugins');
 const gitignorePath = path.join(__dirname, '../.gitignore');
 
-// no es necesario verificar que exista lka carpeta plugins, ya que existe en mystic. pero puede ser util para otros bots
+// It's not necessary to verify the plugins folder exists since it exists in mystic, but it might be useful for other bots
 const ensurePluginsDirExists = () => {
   if (!fs.existsSync(pluginsDir)) {
     fs.mkdirSync(pluginsDir, { recursive: true });
@@ -44,10 +44,10 @@ const addToGitignore = async (pluginPath) => {
     if (!gitignoreContent.includes(relativePluginPath)) {
       gitignoreContent += `\n${relativePluginPath}\n`;
       await writeGitignore(gitignoreContent);
-      console.log(`✅ ${relativePluginPath} añadido a .gitignore`);
+      console.log(`✅ ${relativePluginPath} added to .gitignore`);
     }
   } catch (error) {
-    throw new Error(`Error al actualizar .gitignore: ${error.message}`);
+    throw new Error(`Error updating .gitignore: ${error.message}`);
   }
 };
 
@@ -62,17 +62,17 @@ const removeFromGitignore = async (pluginPath) => {
         .filter(line => line.trim() !== relativePluginPath)
         .join('\n');
       await writeGitignore(gitignoreContent);
-      console.log(`✅ ${relativePluginPath} eliminado de .gitignore`);
+      console.log(`✅ ${relativePluginPath} removed from .gitignore`);
     }
   } catch (error) {
-    throw new Error(`Error al actualizar .gitignore: ${error.message}`);
+    throw new Error(`Error updating .gitignore: ${error.message}`);
   }
 };
 
 const downloadPlugin = async (url, pluginName) => {
   try {
     const response = await fetch(url);
-    if (!response.ok) throw new Error(`❌ Error al descargar el plugin: ${response.statusText}`);
+    if (!response.ok) throw new Error(`❌ Error downloading plugin: ${response.statusText}`);
 
     const pluginPath = path.join(pluginsDir, pluginName);
     const fileStream = fs.createWriteStream(pluginPath);
@@ -83,10 +83,10 @@ const downloadPlugin = async (url, pluginName) => {
       fileStream.on('finish', resolve);
     });
 
-    console.log(`✅ Plugin descargado: ${pluginName}`);
+    console.log(`✅ Plugin downloaded: ${pluginName}`);
     return pluginPath;
   } catch (error) {
-    throw new Error(`Error al descargar el plugin: ${error.message}`);
+    throw new Error(`Error downloading plugin: ${error.message}`);
   }
 };
 
@@ -96,35 +96,35 @@ const deletePlugin = async (pluginName) => {
     if (fs.existsSync(pluginPath)) {
       await removeFromGitignore(pluginPath);
       fs.unlinkSync(pluginPath);
-      console.log(`✅ Plugin ${pluginName} eliminado.`);
+      console.log(`✅ Plugin ${pluginName} deleted.`);
       return `✅ 🗑️ ${pluginName} `;
     } else {
-      return `❌ ${pluginName} no existe.`;
+      return `❌ ${pluginName} doesn't exist.`;
     }
   } catch (error) {
-    throw new Error(`Error al eliminar el plugin: ${error.message}`);
+    throw new Error(`Error deleting plugin: ${error.message}`);
   }
 };
 
 const handler = async (m, { text }) => {
-  if (!text) return m.reply('❌ Ej .plg url .plg nombre');
+  if (!text) return m.reply('❌ Usage: .plg url OR .plg name');
 
   try {
     const input = text.trim();
-    ensurePluginsDirExists(); // innecesario
+    ensurePluginsDirExists(); // unnecessary
 
     if (isValidUrl(input)) {
       const pluginName = path.basename(input); 
       const pluginPath = await downloadPlugin(input, pluginName); 
       await addToGitignore(pluginPath); 
-      m.reply(`✅ ${pluginName} instalado`);
+      m.reply(`✅ ${pluginName} installed`);
     } else {
       const result = await deletePlugin(input); 
       m.reply(result);
     }
   } catch (error) {
-    console.error("Error al procesar el comando:", error);
-    const errorMessage = error.message.includes('Error al eliminar el plugin') // complejo e ineccesario. Brr
+    console.error("Error processing command:", error);
+    const errorMessage = error.message.includes('Error deleting plugin') // complex and unnecessary. Brr
       ? error.message.split('❌ ')[1]
       : `❌ ${error.message}`;
     m.reply(errorMessage);
@@ -132,8 +132,8 @@ const handler = async (m, { text }) => {
 };
 
 handler.command = /^plg$/i;
-handler.help = ['Instalador Plugins plg <url o nombre>'];
+handler.help = ['Plugin Installer plg <url or name>'];
 handler.tags = ['tools'];
-handler.owner = true; // Solo el propietario puede usar este comando
+handler.owner = true; // Only the owner can use this command
 
 export default handler;
