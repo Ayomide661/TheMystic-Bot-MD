@@ -5,11 +5,17 @@ const handler = async (m, { conn, usedPrefix, command, groupMetadata, participan
   const datas = global;
   const language = datas.db.data.users[m.sender].language || global.defaultLanguage;
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${language}.json`));
-  const translator = _translate.plugins.rpg_crime;
+  const translator = _translate.plugins.rpg_crime || {
+    antiCheat: "You don't have enough diamonds to risk this crime!",
+    texto1: "⏳ Cooldown active! Try again in:",
+    texto2: ["💎 Diamonds", "💰 Money"],
+    texto3: ["Stole from", "and gained"],
+    error: "❌ Crime failed unexpectedly!"
+  };
 
   // Safety check before attempting crime
   if (global.db.data.users[m.sender].limit < diamondPenalty) {
-    return m.reply(`🚷 ${translator.antiCheat || "You don't have enough diamonds to risk this crime!"}\n` +
+    return m.reply(`🚷 ${translator.antiCheat}\n` +
                  `Your balance: ${global.db.data.users[m.sender].limit} 💎\n` +
                  `Required safety deposit: ${diamondPenalty} 💎`);
   }
@@ -17,8 +23,7 @@ const handler = async (m, { conn, usedPrefix, command, groupMetadata, participan
   // 1 hour cooldown (3600000 ms)
   const cooldownEnd = global.db.data.users[m.sender].crime + 3600000;
   if (new Date() - global.db.data.users[m.sender].crime < 3600000) {
-    return m.reply(`${translator.texto1 || "⏳ Cooldown active! Try again in:"} ` + 
-                 `${msToTime(cooldownEnd - new Date())}`);
+    return m.reply(`${translator.texto1} ${msToTime(cooldownEnd - new Date())}`);
   }
 
   let target;
@@ -49,18 +54,18 @@ const handler = async (m, { conn, usedPrefix, command, groupMetadata, participan
     switch(outcome) {
       case 'success_no_loot':
         global.db.data.users[m.sender].exp += exp;
-        return m.reply(`💰 ${pickRandom(global.robSuccess || ["Crime successful!"])} +${exp} XP`);
+        return m.reply(`💰 ${pickRandom(translator.robSuccess || ["Crime successful!"])} +${exp} XP`);
         
       case 'fail_penalty':
         global.db.data.users[m.sender].exp = Math.max(0, global.db.data.users[m.sender].exp - crimePenalty);
-        return m.reply(`🚓 ${pickRandom(global.robFail || ["Crime failed!"])} -${Math.min(crimePenalty, global.db.data.users[m.sender].exp)} XP`);
+        return m.reply(`🚓 ${pickRandom(translator.robFail || ["Crime failed!"])} -${Math.min(crimePenalty, global.db.data.users[m.sender].exp)} XP`);
         
       case 'success_money':
         global.db.data.users[m.sender].limit += diamond;
         global.db.data.users[m.sender].money += money;
-        return m.reply(`💰 *${pickRandom(global.robSuccess || ["Big score!"]}*\n\n` +
-                     `+${diamond} ${translator.texto2?.[0] || "💎 Diamonds"}\n` +
-                     `+${money} ${translator.texto2?.[1] || "💰 Money"}`);
+        return m.reply(`💰 *${pickRandom(translator.robSuccess || ["Big score!"])}*\n\n` +
+                     `+${diamond} ${translator.texto2[0]}\n` +
+                     `+${money} ${translator.texto2[1]}`);
         
       case 'fail_money':
         const diamondsLost = Math.min(diamondPenalty, global.db.data.users[m.sender].limit);
@@ -69,9 +74,9 @@ const handler = async (m, { conn, usedPrefix, command, groupMetadata, participan
         global.db.data.users[m.sender].limit -= diamondsLost;
         global.db.data.users[m.sender].money -= moneyLost;
         
-        return m.reply(`🚓 ${pickRandom(global.robFail || ["Caught red-handed!"]}\n\n` +
-                     `-${diamondsLost} ${translator.texto2?.[0] || "💎 Diamonds"}\n` +
-                     `-${moneyLost} ${translator.texto2?.[1] || "💰 Money"}`);
+        return m.reply(`🚓 ${pickRandom(translator.robFail || ["Caught red-handed!"])}\n\n` +
+                     `-${diamondsLost} ${translator.texto2[0]}\n` +
+                     `-${moneyLost} ${translator.texto2[1]}`);
         
       case 'success_target':
         const stolenExp = Math.min(crimePenalty, global.db.data.users[randomTarget].exp);
@@ -79,15 +84,15 @@ const handler = async (m, { conn, usedPrefix, command, groupMetadata, participan
         global.db.data.users[randomTarget].exp -= stolenExp;
         
         return conn.reply(m.chat, 
-          `${translator.texto3?.[0] || "Stole"} @${randomTarget.split`@`[0]} ` +
-          `${translator.texto3?.[1] || "and gained"} ${stolenExp} XP`, 
+          `${translator.texto3[0]} @${randomTarget.split`@`[0]} ` +
+          `${translator.texto3[1]} ${stolenExp} XP`, 
           m, 
           { contextInfo: { mentionedJid: [randomTarget] } }
         );
     }
   } catch (e) {
     console.error('Crime System Error:', e);
-    return m.reply(translator.error || "❌ Crime failed unexpectedly!");
+    return m.reply(translator.error);
   }
 };
 
@@ -106,5 +111,6 @@ function msToTime(duration) {
 }
 
 function pickRandom(list) {
-  return list?.[Math.floor(Math.random() * list.length)] || "Default crime message";
+  if (!Array.isArray(list)) return "Default crime message";
+  return list[Math.floor(Math.random() * list.length)];
 }
