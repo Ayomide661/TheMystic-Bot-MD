@@ -3,42 +3,56 @@ import fs from 'fs';
 const xpperlimit = 350;
 
 const handler = async (m, { conn, command, args }) => {
-  const datas = global;
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje;
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
-  const tradutor = _translate.plugins.rpg_shop;
+  try {
+    const datas = global;
+    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje;
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
+    const tradutor = _translate.plugins.rpg_shop || {};
 
-  if (!args[0] || args[0] === 'list') {
-    return showShop(m, conn, tradutor);
-  }
+    if (!args[0] || args[0] === 'list') {
+      return showShop(m, conn, tradutor);
+    }
 
-  const itemKey = args[0].toLowerCase();
-  const item = global.rpgshop.getItem(itemKey);
+    const itemKey = args[0].toLowerCase();
+    const item = global.rpgshop.getItem(itemKey);
 
-  if (!item) {
-    return conn.reply(m.chat, tradutor.texto4.replace('{}', itemKey), m);
-  }
+    if (!item) {
+      const notFoundMsg = tradutor.texto4 
+        ? tradutor.texto4.replace('{}', itemKey) 
+        : `Item "${itemKey}" not found in the shop!`;
+      return conn.reply(m.chat, notFoundMsg, m);
+    }
 
-  let count = command.replace(/^buy/i, '');
-  count = count ? /all/i.test(count) ? 
-    Math.floor(global.db.data.users[m.sender].exp / (item.price || xpperlimit)) : 
-    parseInt(count) : 
-    args[1] ? parseInt(args[1]) : 1;
-  count = Math.max(1, count);
+    let count = command.replace(/^buy/i, '');
+    count = count ? /all/i.test(count) ? 
+      Math.floor(global.db.data.users[m.sender].exp / (item.price || xpperlimit)) : 
+      parseInt(count) : 
+      args[1] ? parseInt(args[1]) : 1;
+    count = Math.max(1, count);
 
-  const totalCost = (item.price || xpperlimit) * count;
+    const totalCost = (item.price || xpperlimit) * count;
 
-  if (global.db.data.users[m.sender].exp >= totalCost) {
-    global.db.data.users[m.sender].exp -= totalCost;
-    global.db.data.users[m.sender][itemKey] = (global.db.data.users[m.sender][itemKey] || 0) + count;
+    if (global.db.data.users[m.sender].exp >= totalCost) {
+      global.db.data.users[m.sender].exp -= totalCost;
+      global.db.data.users[m.sender][itemKey] = (global.db.data.users[m.sender][itemKey] || 0) + count;
 
-    conn.reply(m.chat, `
-${tradutor.texto1[0]}
-${tradutor.texto1[1]} : + ${count} ${item.name} 
-${tradutor.texto1[2]} -${totalCost} XP
-${tradutor.texto1[3]}`, m);
-  } else {
-    conn.reply(m.chat, `${tradutor.texto2} *${count}* ${item.name} ${tradutor.texto3}`, m);
+      const successMsg = [
+        tradutor.texto1?.[0] || 'Purchase successful!',
+        `${tradutor.texto1?.[1] || 'You obtained'} : + ${count} ${item.name}`,
+        `${tradutor.texto1?.[2] || 'XP deducted'} -${totalCost} XP`,
+        tradutor.texto1?.[3] || 'Thank you for your purchase!'
+      ].join('\n');
+
+      conn.reply(m.chat, successMsg, m);
+    } else {
+      const failMsg = `${tradutor.texto2 || 'You don't have enough XP to buy'} *${count}* ${item.name} ${
+        tradutor.texto3 || 'You need more XP!'
+      }`;
+      conn.reply(m.chat, failMsg, m);
+    }
+  } catch (error) {
+    console.error('Error in shop handler:', error);
+    conn.reply(m.chat, 'An error occurred while processing your request.', m);
   }
 };
 
