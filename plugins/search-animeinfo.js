@@ -5,76 +5,87 @@ const client = new Anime();
 
 const handler = async (m, { conn, text, usedPrefix }) => {
   try {
-    const idioma = global.db.data.users[m.sender]?.language || global.defaultLenguaje;
-    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
-    const tradutor = _translate.plugins.buscador_animeinfo;
+    // Get user language
+    const user = global.db.data.users[m.sender] || {};
+    const lang = user.language || 'en';
+    const translations = {
+      en: {
+        noQuery: 'Please provide an anime title\nExample: *!anime Attack on Titan*',
+        notFound: 'Anime not found, please try another title',
+        error: 'An error occurred, please try again later'
+      },
+      es: {
+        noQuery: 'Por favor ingresa un título de anime\nEjemplo: *!anime Attack on Titan*',
+        notFound: 'Anime no encontrado, prueba con otro título',
+        error: 'Ocurrió un error, por favor intenta nuevamente'
+      }
+    };
 
     if (!text) {
-      return m.reply(`🎌 *${tradutor.texto1}*\n*Ejemplo:* ${usedPrefix}anime Attack on Titan`);
+      return m.reply(`❌ ${translations[lang]?.noQuery || translations.en.noQuery}`);
     }
 
-    // Search anime with timeout
-    const searchPromise = client.searchAnime(text);
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Tiempo de búsqueda excedido')), 10000);
-    
-    const anime = await Promise.race([searchPromise, timeoutPromise]);
-    const result = anime.data[0];
-
-    if (!result) {
-      throw new Error(tradutor.texto3);
-    }
-
-    // Parallel translation requests
-    const [backgroundTrans, synopsisTrans] = await Promise.all([
-      translate(result.background || '', { to: idioma === 'es' ? 'es' : 'en', autoCorrect: true }),
-      translate(result.synopsis || '', { to: idioma === 'es' ? 'es' : 'en', autoCorrect: true })
+    // Search with timeout (15 seconds)
+    const anime = await Promise.race([
+      client.searchAnime(text),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Search timeout')), 15000))
     ]);
 
-    // Format anime info
-    const AnimeInfo = `
-🎌 *${result.title}* 🎌
-${tradutor.texto2[0]} ${result.type}
-${tradutor.texto2[1]} ${result.status.toUpperCase().replace(/\_/g, ' ')}
-${tradutor.texto2[2]} ${result.episodes}
-${tradutor.texto2[3]} ${result.duration}
-${tradutor.texto2[4]} ${result.source.toUpperCase()}
-${tradutor.texto2[5]} ${new Date(result.aired.from).toLocaleDateString()}
-${tradutor.texto2[6]} ${result.aired.to ? new Date(result.aired.to).toLocaleDateString() : 'En emisión'}
-${tradutor.texto2[7]} ${result.popularity}
-${tradutor.texto2[8]} ${result.favorites}
-${tradutor.texto2[9]} ${result.rating}
-${tradutor.texto2[10]} ${result.rank}
+    if (!anime?.data?.length) {
+      return m.reply(`🔍 ${translations[lang]?.notFound || translations.en.notFound}`);
+    }
 
-📜 *${tradutor.texto2[11]}*
-${backgroundTrans.text || 'No disponible'}
+    const result = anime.data[0];
+    
+    // Get translations in parallel
+    const [synopsisTrans, backgroundTrans] = await Promise.all([
+      translate(result.synopsis || '', { to: lang, autoCorrect: true }).catch(() => ({ text: 'Not available' })),
+      translate(result.background || '', { to: lang, autoCorrect: true }).catch(() => ({ text: 'Not available' }))
+    ]);
 
-📖 *${tradutor.texto2[12]}*
-${synopsisTrans.text || 'No disponible'}
+    // Format the response
+    const animeInfo = `
+🎌 *${result.title}* ${result.year ? `(${result.year})` : ''}
 
-🔗 *${tradutor.texto2[13]}* 
-${result.trailer.url || 'No disponible'}
+📜 *Synopsis:*
+${synopsisTrans.text}
 
-🌐 *${tradutor.texto2[14]}*
-${result.url}`;
+📖 *Background:*
+${backgroundTrans.text}
 
-    await conn.sendFile(m.chat, 
-      result.images.jpg.image_url, 
-      'anime.jpg', 
-      AnimeInfo, 
+ℹ️ *Info:*
+• Type: ${result.type}
+• Status: ${result.status.replace(/_/g, ' ')}
+• Episodes: ${result.episodes}
+• Duration: ${result.duration}
+• Rating: ${result.rating || 'N/A'}
+• Score: ${result.score || 'N/A'}
+
+🔗 *Links:*
+Trailer: ${result.trailer.url ? result.trailer.url : 'Not available'}
+More Info: ${result.url}`;
+
+    await conn.sendFile(
+      m.chat,
+      result.images.jpg.image_url,
+      'anime.jpg',
+      animeInfo,
       m
     );
 
   } catch (error) {
-    console.error('Anime search error:', error);
-    const errorMsg = error.message.includes('Tiempo de búsqueda') ? 
-      '⏳ El servidor de anime está respondiendo lentamente. Intenta nuevamente más tarde.' :
-      `❌ Error: ${error.message}`;
+    console.error('Anime command error:', error);
+    const lang = global.db.data.users[m.sender]?.language || 'en';
+    const errorMsg = error.message.includes('timeout') ?
+      '⏳ The anime server is taking too long to respond. Please try again later.' :
+      `❌ ${translations[lang]?.error || translations.en.error}`;
+    
     m.reply(errorMsg);
   }
 };
 
-handler.help = ['anime <búsqueda>'];
+handler.help = ['anime <title>'];
 handler.tags = ['anime'];
 handler.command = /^(anime|animeinfo)$/i;
 export default handler;
