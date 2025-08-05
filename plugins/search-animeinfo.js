@@ -2,8 +2,7 @@ import translate from '@vitalets/google-translate-api';
 import marika from '@shineiichijo/marika';
 
 // Initialize client correctly
-const { JikanClient } = marika;
-const client = new JikanClient();
+const client = new marika.JikanClient();
 
 const handler = async (m, { conn, text }) => {
   try {
@@ -14,7 +13,7 @@ const handler = async (m, { conn, text }) => {
     // 1. Search anime with error handling
     let result;
     try {
-      const search = await client.searchAnime(text, { limit: 1 });
+      const search = await client.anime.search(text, { limit: 1 });
       result = search.data[0];
     } catch (e) {
       console.error('API Error:', e);
