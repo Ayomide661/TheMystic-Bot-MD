@@ -2,7 +2,7 @@ import cheerio from 'cheerio';
 import axios from 'axios';
 import fs from 'fs';
 
-const handler = async (m, {conn, text, __dirname, usedPrefix, command}) => {
+const handler = async (m, { conn, text }) => {
   try {
     const datas = global;
     const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje;
@@ -13,29 +13,31 @@ const handler = async (m, {conn, text, __dirname, usedPrefix, command}) => {
     if (!text) throw tradutor.texto2;
 
     const searchResults = await searchHentai(text);
-    
+
     if (!searchResults || searchResults.result.length === 0) {
+      const fallbackImage = `https://api.lolhuman.xyz/api/random/nsfw/hentai?apikey=YOUR_API_KEY`;
       return conn.sendFile(
-        m.chat, 
-        'https://pictures.hentai-foundry.com/e/Error-Dot/577798/Error-Dot-577798-Zero_Two.png', 
-        'error.jpg', 
-        tradutor.texto3, 
+        m.chat,
+        fallbackImage,
+        'fallback.jpg',
+        tradutor.texto3,
         m
       );
     }
 
     let teks = searchResults.result.map((v, i) => `
-${i+1}. *_${v.title}_*
-↳ 📺 *_Vistas:_* ${v.views}
+${i + 1}. *_${v.title}_*
+↳ 📺 *_Views:_* ${v.views}
 ↳ 🎞️ *_Link:_* ${v.url}`).join('\n\n');
 
     const randomThumbnail = searchResults.result[Math.floor(Math.random() * searchResults.result.length)].thumbnail;
 
     await conn.sendFile(m.chat, randomThumbnail, 'thumbnail.jpg', teks, m);
-    
+
   } catch (error) {
     console.error(error);
-    m.reply(tradutor.texto3 || 'Error occurred while searching');
+    const fallbackImage = `https://api.lolhuman.xyz/api/random/nsfw/hentai?apikey=YOUR_API_KEY`;
+    await conn.sendFile(m.chat, fallbackImage, 'error.jpg', 'An error occurred while searching.', m);
   }
 };
 
@@ -55,13 +57,12 @@ async function searchHentai(search) {
     const $ = cheerio.load(data);
     const results = [];
 
-    // Updated selectors - you may need to adjust these based on the current site structure
     $('div.item').each((i, el) => {
       const thumbnail = $(el).find('img').attr('src');
       const title = $(el).find('h2 a').text().trim();
       const views = $(el).find('.meta').text().trim();
       const url = $(el).find('h2 a').attr('href');
-      
+
       if (thumbnail && title && url) {
         results.push({
           thumbnail,
