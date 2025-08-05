@@ -1,7 +1,8 @@
 import translate from '@vitalets/google-translate-api';
-import { JikanClient } from '@shineiichijo/marika';
+import marika from '@shineiichijo/marika';
 
 // Initialize client correctly
+const { JikanClient } = marika;
 const client = new JikanClient();
 
 const handler = async (m, { conn, text }) => {
