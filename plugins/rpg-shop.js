@@ -1,4 +1,5 @@
-const fs = require('fs');
+import fs from 'fs';
+
 const xpperlimit = 350; // Default price if item doesn't have one
 
 const handler = async (m, { conn, command, args }) => {
@@ -14,7 +15,7 @@ const handler = async (m, { conn, command, args }) => {
 
   const itemKey = args[0].toLowerCase();
   const item = global.rpgshop.getItem(itemKey);
-  
+
   if (!item) {
     return conn.reply(m.chat, tradutor.texto4.replace('{}', itemKey), m);
   }
@@ -31,7 +32,7 @@ const handler = async (m, { conn, command, args }) => {
   if (global.db.data.users[m.sender].exp >= totalCost) {
     global.db.data.users[m.sender].exp -= totalCost;
     global.db.data.users[m.sender][itemKey] = (global.db.data.users[m.sender][itemKey] || 0) + count;
-    
+
     conn.reply(m.chat, `
 ${tradutor.texto1[0]}
 ${tradutor.texto1[1]} : + ${count} ${item.name} 
@@ -44,7 +45,7 @@ ${tradutor.texto1[3]}`, m);
 
 async function showShop(m, conn, tradutor) {
   const itemsByCategory = {};
-  
+
   // Group items by category
   global.rpgshop.listItems().forEach(item => {
     if (!itemsByCategory[item.type]) {
@@ -52,20 +53,20 @@ async function showShop(m, conn, tradutor) {
     }
     itemsByCategory[item.type].push(item);
   });
-  
+
   // Build shop message
   let shopMessage = `${tradutor.shopTitle}\n\n`;
-  
+
   for (const [category, items] of Object.entries(itemsByCategory)) {
-    shopMessage += `*${category.toUpperCase()}*\n`;
+    shopMessage += `*${tradutor.categories[category] || category.toUpperCase()}*\n`;
     shopMessage += items.map(item => 
-      `- ${item.name} (${item.id}): ${item.price} XP`
+      `➠ ${item.name} (${item.id}): ${item.price} XP`
     ).join('\n');
     shopMessage += '\n\n';
   }
-  
+
   shopMessage += tradutor.shopHelp;
-  
+
   conn.reply(m.chat, shopMessage, m);
 }
 
