@@ -1,8 +1,8 @@
 import translate from '@vitalets/google-translate-api';
 import marika from '@shineiichijo/marika';
 
-// Initialize client correctly
-const client = new marika.JikanClient();
+// Initialize client correctly - newer versions might export client directly
+const client = marika.Client || marika;
 
 const handler = async (m, { conn, text }) => {
   try {
