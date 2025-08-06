@@ -1,7 +1,7 @@
 {
     "plugins": {
         "menu": {
-            "menu_header": "╭═══〘 ✯✯✯✯✯✯✯✯✯ 〙══╮\n║ ◉— *The Mystic - Bot* —◉\n║≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡║\n║➤ *Hello,* @username\n║≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡║\n║➤ *Owner:* @author\n║➤ *Number:* wa.me/@owner\n║➤ *PayPal:* paypal.me/BrunoSob\n║➤ *Date:* @week, @date\n║➤ *Uptime:* @uptime\n║➤ *Users:* @rtotal\n║➤ *Registered:* @rtotalreg\n╰═══╡✯✯✯✯✯✯✯✯✯╞═══╯",
+            "menu_header": "╭═══〘 ✯✯✯✯✯✯✯✯✯ 〙══╮\n║ ◉— *The Mystic - Bot* —◉\n║≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡║\n║➤ *Hello,* @username\n║≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡║\n║➤ *Owner:* @author\n║➤ *Number:* wa.me/@owner\n║➤ *Date:* @week, @date\n║➤ *Uptime:* @uptime\n║➤ *Users:* @rtotal\n║➤ *Registered:* @rtotalreg\n╰═══╡✯✯✯✯✯✯✯✯✯╞═══╯",
 
             "user_info": "┏━━━━━━━━━━━━━━━━┓\n┃ *< USER INFO />*\n┃≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡┃\n┣ ✯ *Level:* @level\n┣ ✯ *Experience:* @exp\n┣ ✯ *Rank:* @role\n┣ ✯ *Diamonds:* @limit\n┣ ✯ *MysticCoins:* @money\n┣ ✯ *Tokens:* @joincount\n┣ ✯ *Premium:* @premium\n┗━━━━━━━━━━━━━━━━┛\n",
 
