@@ -746,7 +746,7 @@
                 "*VIDEOS:*",
                 "*DESCRIPTION:*"
             ],
-            "texto3": "*[❗️] Error, could not find the provided Instagram user.*"
+            "texto3": "*[❗️] Error, could not find the provided Tiktok user.*"
         },
         "downloader_wallpaper": {
             "texto1": "*[❗️] Provide the usage command for wallpaper downloader.*",
