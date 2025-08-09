@@ -6,7 +6,7 @@ const handler = async (m, {conn, text, args}) => {
    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
    const tradutor = _translate.plugins.herramientas_ssweb
 
-if (!args[0]) return conn.reply(m.chat, tradutor.texto1, m);  
+if (!args[0]) return conn.reply(m.chat, tradutor.text1, m);  
    try {
      const ss = await (await fetch(`https://image.thum.io/get/fullpage/${args[0]}`)).buffer();
         conn.sendFile(m.chat, ss, '', '', m);
