@@ -6,22 +6,22 @@ const handler = async (m, {conn, text}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.sticker_wm
 
-  if (!m.quoted) throw tradutor.texto1;
+  if (!m.quoted) throw tradutor.text1;
   let stiker = false;
   try {
     let [packname, ...author] = text.split('|');
     author = (author || []).join('|');
     const mime = m.quoted.mimetype || '';
-    if (!/image\/webp/.test(mime)) throw tradutor.texto2;
+    if (!/image\/webp/.test(mime)) throw tradutor.text2;
     const img = await m.quoted.download();
-    if (!img) throw tradutor.texto3;
+    if (!img) throw tradutor.text3;
     stiker = await addExif(img, packname || global.packname, author || global.author);
   } catch (e) {
     console.error(e);
     if (Buffer.isBuffer(e)) stiker = e;
   } finally {
     if (stiker) conn.sendFile(m.chat, stiker, 'wm.webp', '', m, false, {asSticker: true});
-    else throw tradutor.texto3;
+    else throw tradutor.text3;
   }
 };
 handler.help = ['wm <packname>|<author>'];
