@@ -18,7 +18,7 @@ let handler = async (m, { conn, text, command }) => {
       return m.reply('🗑️ Memoria de conversación borrada exitosamente.\n\nYa no recordaré nuestras conversaciones anteriores.');
     }
       
-    if (!text) return m.reply(tradutor.texto1[0]);
+    if (!text) return m.reply(tradutor.text1[0]);
 
     const model = await axios.get("https://raw.githubusercontent.com/Skidy89/chat-gpt-jailbreak/refs/heads/main/Text.txt");
     const context = `${model.data}`.trim();
@@ -27,7 +27,7 @@ let handler = async (m, { conn, text, command }) => {
     m.reply(result);
   } catch (error) {
     console.error('[❌ ERROR GENERAL]', error);
-    m.reply(tradutor?.texto4);
+    m.reply(tradutor?.text4);
   }
 };
 
