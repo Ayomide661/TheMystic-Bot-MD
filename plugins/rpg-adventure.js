@@ -40,7 +40,7 @@ const handler = async (m, {usedPrefix, conn}) => {
     if (user.health < 80) {
       return conn.reply(
         m.chat,
-        `_${htki} ${tradutor.texto1[0]} ${htka}_\n\n${tradutor.texto1[1]}`,
+        `_${htki} ${tradutor.text1[0]} ${htka}_\n\n${tradutor.text1[1]}`,
         m,
       );
     }
@@ -48,23 +48,23 @@ const handler = async (m, {usedPrefix, conn}) => {
     if (new Date() - user.lastadventure <= cooldown) {
       return conn.reply(
         m.chat,
-        `${htki} ${tradutor.texto2[0]} ${htka}\n\n${tradutor.texto2[1]} ${new Date(timers).toISOString().substr(11, 8)} ${tradutor.texto2[2]}`,
+        `${htki} ${tradutor.text2[0]} ${htka}\n\n${tradutor.text2[1]} ${new Date(timers).toISOString().substr(11, 8)} ${tradutor.text2[2]}`,
         m,
       );
     }
 
     // 4. Generate adventure card with image
     const rewards = reward(user);
-    let text = `${tradutor.texto2[3]} *» ${kt[1][0].name}*
+    let text = `${tradutor.text2[3]} *» ${kt[1][0].name}*
 
 ${cmenut}
-${cmenub} ${tradutor.texto3[0]} ${kt[1][0].id}
-${cmenub} ${tradutor.texto3[1]} ${kt[1][0].capitalCity}
-${cmenub} ${tradutor.texto3[2]} ${kt[1][0].longitude}
-${cmenub} ${tradutor.texto3[3]} ${kt[1][0].latitude}
+${cmenub} ${tradutor.text3[0]} ${kt[1][0].id}
+${cmenub} ${tradutor.text3[1]} ${kt[1][0].capitalCity}
+${cmenub} ${tradutor.text3[2]} ${kt[1][0].longitude}
+${cmenub} ${tradutor.text3[3]} ${kt[1][0].latitude}
 ${cmenuf}
 
-${tradutor.texto3[4]}
+${tradutor.text3[4]}
 ${cmenua}`;
 
     // Reward processing (unchanged)
@@ -75,7 +75,7 @@ ${cmenua}`;
         if (total) text += `\n${global.rpg.emoticon(lost)} ${total}`;
       }
     }
-    text += tradutor.texto4;
+    text += tradutor.text4;
     for (const rewardItem in rewards.reward) {
       if (rewardItem in user) {
         const total = rewards.reward[rewardItem].getRandom();
@@ -86,7 +86,7 @@ ${cmenua}`;
     
     // 5. Send message with image
     await conn.sendFile(m.chat, img, 'adventure.jpg', 
-      `${htki} ${tradutor.texto5[0]} ${htka}\n\n${text}`, 
+      `${htki} ${tradutor.text5[0]} ${htka}\n\n${text}`, 
       m, null, { mentions: [m.sender] }
     );
     
@@ -96,7 +96,7 @@ ${cmenua}`;
     console.error('Adventure error:', e);
     conn.reply(
       m.chat,
-      `${tradutor.texto5[1]}`,
+      `${tradutor.text5[1]}`,
       m,
     );
   }
