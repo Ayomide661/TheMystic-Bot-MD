@@ -7,7 +7,7 @@ const handler = async (m, {text, usedPrefix, command, conn}) => {
   const idioma = global.db.data.users[m.sender].language || global.defaultLenguaje
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.buscador_peliculas
-  if (!text) throw `*${tradutor.texto1}*`;
+  if (!text) throw `*${tradutor.text1}*`;
   let aaaa;
   let img;
     aaaa = await searchC(text);
@@ -17,9 +17,9 @@ const handler = async (m, {text, usedPrefix, command, conn}) => {
     } catch {
         img = 'https://www.poresto.net/u/fotografias/m/2023/7/5/f1280x720-305066_436741_5050.png';
     }    
-  if (aaaa == '') throw `*${tradutor.texto2}*`;                                        /* https://wwv.cuevana8.com */
-  const res = await aaaa.map((v) => `*${tradutor.texto3[0]}* ${v.title}\n*${tradutor.texto3[1]}* ${v.link}`).join`\n\n─────────────────\n\n`;
-  const ads = `*${tradutor.texto3[2]}* ${tradutor.texto3[3]}\n*${tradutor.texto3[4]}* https://block-this.com/block-this-latest.apk\n\n≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣\n\n`;
+  if (aaaa == '') throw `*${tradutor.text2}*`;                                        /* https://wwv.cuevana8.com */
+  const res = await aaaa.map((v) => `*${tradutor.text3[0]}* ${v.title}\n*${tradutor.text3[1]}* ${v.link}`).join`\n\n─────────────────\n\n`;
+  const ads = `*${tradutor.text3[2]}* ${tradutor.text3[3]}\n*${tradutor.text3[4]}* https://block-this.com/block-this-latest.apk\n\n≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣≣\n\n`;
   conn.sendMessage(m.chat, {image: {url: img}, caption: ads + res}, {quoted: m});
  } catch {
    return conn.sendMessage(m.chat, {text: '*[❗] Error, no se obtuvieron resultados.'}, {quoted: m});   
