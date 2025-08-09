@@ -9,8 +9,8 @@ const handler = async (m, { conn, text }) => {
   try {
           const stdout = execSync('git pull' + (m.fromMe && text ? ' ' + text : ''));
           let messager = stdout.toString()
-          if (messager.includes('Already up to date.')) messager = tradutor.texto1
-          if (messager.includes('Updating')) messager = tradutor.texto2 + stdout.toString()
+          if (messager.includes('Already up to date.')) messager = tradutor.text1
+          if (messager.includes('Updating')) messager = tradutor.text2 + stdout.toString()
           conn.reply(m.chat, messager, m);
   } catch {      
  try {    
@@ -28,13 +28,13 @@ const handler = async (m, { conn, text }) => {
           })
           .filter(Boolean);
         if (conflictedFiles.length > 0) {
-          const errorMessage = `${tradutor.texto3} \n\n${conflictedFiles.join('\n')}.*`;
+          const errorMessage = `${tradutor.text3} \n\n${conflictedFiles.join('\n')}.*`;
           await conn.reply(m.chat, errorMessage, m);  
         }
       }
   } catch (error) {
     console.error(error);
-    let errorMessage2 = tradutor.texto4;
+    let errorMessage2 = tradutor.text4;
     if (error.message) {
       errorMessage2 += '\n*- Mensaje de error:* ' + error.message;
     }
