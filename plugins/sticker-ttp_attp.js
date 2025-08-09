@@ -15,7 +15,7 @@ const handler = async (m, { conn, text, args, usedPrefix, command }) => {
     fs.readFileSync(`./src/languages/${idioma}.json`),
   );
   const tradutor = _translate.plugins.sticker_ttp_attp;
-  if (!text) throw `${tradutor.texto1} ${usedPrefix + command} Mystic-Bot*`;
+  if (!text) throw `${tradutor.text1} ${usedPrefix + command} Mystic-Bot*`;
   if (command == "attp") {
     const a1 = await (
       await fetch(
