@@ -11,7 +11,7 @@ const handler = async (m, { conn, text }) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
   const tradutor = _translate.plugins.downloader_tiktokstalk;
 
-  if (!text) return conn.reply(m.chat, tradutor.texto1, m);  
+  if (!text) return conn.reply(m.chat, tradutor.text1, m);  
   try {
     const response = await axios.get("https://delirius-apiofc.vercel.app/tools/tiktokstalk", {
       params: { q: text }
@@ -21,17 +21,17 @@ const handler = async (m, { conn, text }) => {
     if (data.status && data.result) {
       const user = data.result.users;
       const stats = data.result.stats;
-      const body = `${tradutor.texto2[0]} ${user.username || '-'}\n${tradutor.texto2[1]} ${user.nickname || '-'}\n${tradutor.texto2[2]} ${stats.followerCount ? formatNumber(stats.followerCount) : '-'}\n${tradutor.texto2[3]} ${stats.followingCount ? formatNumber(stats.followingCount) : '-'}\n${tradutor.texto2[4]} ${stats.likeCount ? formatNumber(stats.likeCount) : '-'}\n${tradutor.texto2[5]} ${stats.videoCount ? formatNumber(stats.videoCount) : '-'}\n${tradutor.texto2[6]} ${user.signature || '-'}`.trim();
+      const body = `${tradutor.text2[0]} ${user.username || '-'}\n${tradutor.text2[1]} ${user.nickname || '-'}\n${tradutor.text2[2]} ${stats.followerCount ? formatNumber(stats.followerCount) : '-'}\n${tradutor.text2[3]} ${stats.followingCount ? formatNumber(stats.followingCount) : '-'}\n${tradutor.text2[4]} ${stats.likeCount ? formatNumber(stats.likeCount) : '-'}\n${tradutor.text2[5]} ${stats.videoCount ? formatNumber(stats.videoCount) : '-'}\n${tradutor.text2[6]} ${user.signature || '-'}`.trim();
       const imageUrl = user.avatarLarger;
       const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
       const imageBuffer = Buffer.from(imageResponse.data, "binary");
 
       await conn.sendFile(m.chat, imageBuffer, 'profile.jpg', body, m);
     } else {
-      throw tradutor.texto3; 
+      throw tradutor.text3; 
     }
   } catch (e) {
-    throw tradutor.texto3;  
+    throw tradutor.text3;  
   }
 };
 
