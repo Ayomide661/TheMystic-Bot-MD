@@ -7,9 +7,9 @@ const handler = async (m, {conn, text, args, usedPrefix, command}) => {
   let name = await conn.getName(m.sender);
   if (name == 'undefined') name = 'Indefinido';
   const b = text.split('|');
-  if (!b[1]) throw `${tradutor.texto1[0]} ${usedPrefix + command} ${tradutor.texto1[1]}`;
-  if (b[12]) throw `${tradutor.texto1[0]} ${usedPrefix + command} ${tradutor.texto1[1]}`;
-  const caption = `${tradutor.texto2[0]}\n${name}\n${tradutor.texto2[1]}\n${text.split('|')[0]}`.trim();
+  if (!b[1]) throw `${tradutor.text1[0]} ${usedPrefix + command} ${tradutor.text1[1]}`;
+  if (b[12]) throw `${tradutor.text1[0]} ${usedPrefix + command} ${tradutor.text1[1]}`;
+  const caption = `${tradutor.text2[0]}\n${name}\n${tradutor.text2[1]}\n${text.split('|')[0]}`.trim();
   const options = text.split("|").slice(1).map(option => ({ optionName: option.trim() }));  
   const sendPollMessage = {
     messageContextInfo: {
