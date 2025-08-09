@@ -1,67 +1,86 @@
-const handler = async (m, {args, usedPrefix, command}) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.game_slot
+import fs from 'fs';
 
-  const fa = `
-${tradutor.text1} 
+const handler = async (m, { args, usedPrefix, command }) => {
+  // Debug: Log command trigger
+  console.log("Slot command triggered by:", m.sender);
 
-${tradutor.text2} 
-*${usedPrefix + command} 100*`.trim();
+  const datas = global;
+  const idioma = datas.db?.data?.users[m.sender]?.language || global.defaultLenguaje || 'en';
+  
+  // Load language file with error handling
+  let _translate;
+  try {
+    _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
+  } catch (e) {
+    console.error("Language file error:", e);
+    _translate = { plugins: { game_slot: { 
+      text1: "Usage: slot <amount>", 
+      text2: "Example:", 
+      text3: ["Wait", "before playing again!"], 
+      text4: "Minimum bet: 100 XP", 
+      text5: "Not enough XP!", 
+      text6: "JACKPOT! You won", 
+      text7: "Small win!", 
+      text8: "You lost" 
+    } } };
+  }
+  const tradutor = _translate.plugins.game_slot;
+
+  const fa = `${tradutor.text1}\n\n${tradutor.text2}\n*${usedPrefix + command} 100*`;
   if (!args[0]) throw fa;
   if (isNaN(args[0])) throw fa;
+
   const apuesta = parseInt(args[0]);
-  const users = global.db.data.users[m.sender];
+  const users = global.db?.data?.users[m.sender];
+  if (!users) throw "User data not loaded!";
+
   const time = users.lastslot + 10000;
-  if (new Date - users.lastslot < 10000) throw `${tradutor.text3[0]} ${msToTime(time - new Date())} ${tradutor.text3[1]}`;
+  if (new Date() - users.lastslot < 10000) throw `${tradutor.text3[0]} ${msToTime(time - new Date())} ${tradutor.text3[1]}`;
   if (apuesta < 100) throw tradutor.text4;
-  if (users.exp < apuesta) {
-    throw tradutor.text5;
-  }
-  const emojis = ['🐋', '🐉', '🕊️', '🍎', '🍒', '🍇']; // More emojis = harder to win
-  let a = Math.floor(Math.random() * emojis.length);
-  let b = Math.floor(Math.random() * emojis.length);
-  let c = Math.floor(Math.random() * emojis.length);
-  const x = [];
-  const y = [];
-  const z = [];
-  for (let i = 0; i < 3; i++) {
-    x[i] = emojis[a];
-    a++;
-    if (a == emojis.length) a = 0;
-  }
-  for (let i = 0; i < 3; i++) {
-    y[i] = emojis[b];
-    b++;
-    if (b == emojis.length) b = 0;
-  }
-  for (let i = 0; i < 3; i++) {
-    z[i] = emojis[c];
-    c++;
-    if (c == emojis.length) c = 0;
-  }
+  if (users.exp < apuesta) throw tradutor.text5;
+
+  const emojis = ['🐋', '🐉', '🕊️', '🍎', '🍒', '🍇'];
+  const a = Math.floor(Math.random() * emojis.length);
+  const b = Math.floor(Math.random() * emojis.length);
+  const c = Math.floor(Math.random() * emojis.length);
+
+  const slots = [
+    [emojis[a], emojis[b], emojis[c]],
+    [emojis[(a + 1) % emojis.length], emojis[(b + 2) % emojis.length], emojis[(c + 3) % emojis.length]],
+    [emojis[(a + 2) % emojis.length], emojis[(b + 1) % emojis.length], emojis[(c + 4) % emojis.length]]
+  ];
+
   let end;
-  if (a == b && b == c) {
-    const win = apuesta * 5; // 5x payout for jackpot
+  if (a === b && b === c) {
+    const win = apuesta * 5;
     end = `${tradutor.text6} +${win} XP 🎉*`;
     users.exp += win;
-  } else if (a == b || a == c || b == c) {
-    const win = Math.floor(apuesta * 1.5); // 1.5x for two matches
+  } else if (a === b || a === c || b === c) {
+    const win = Math.floor(apuesta * 1.5);
     end = `${tradutor.text7} +${win} XP!*`;
     users.exp += win;
   } else {
     end = `${tradutor.text8} -${apuesta} XP*`;
     users.exp -= apuesta;
   }
-  users.lastslot = new Date * 1;
-  return await m.reply(
-      `
-🎰 | *SLOTS* 
-────────
-${x[0]} : ${y[0]} : ${z[0]}
-${x[1]} : ${y[1]} : ${z[1]}
-${x[2]} : ${y[2]} : ${z[2]}
-────────
-🎰 | ${end}`);
+
+  users.lastslot = new Date();
+  await m.reply(
+    `🎰 | *SLOTS*\n────────\n` +
+    `${slots[0].join(' : ')}\n` +
+    `${slots[1].join(' : ')}\n` +
+    `${slots[2].join(' : ')}\n` +
+    `────────\n🎰 | ${end}`
+  ).catch(e => console.error("Reply failed:", e));
 };
+
+handler.help = ['slot <amount>'];
+handler.tags = ['game'];
+handler.command = ['slot', 'slots'];
+export default handler;
+
+function msToTime(duration) {
+  const seconds = Math.floor((duration / 1000) % 60);
+  const minutes = Math.floor((duration / (1000 * 60)) % 60);
+  return `${minutes}m ${seconds}s`;
+}
