@@ -6,7 +6,7 @@ const handler = async (m, {conn, text}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.frase_piropos
   
-  global.piropo = tradutor.texto1
+  global.piropo = tradutor.text1
 
   m.reply(`*╔═══════════════════════════*\n➢ *"${pickRandom(global.piropo)}"*\n*╚═══════════════════════════*`);
 };
