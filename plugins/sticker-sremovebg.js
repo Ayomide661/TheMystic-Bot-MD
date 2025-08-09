@@ -17,7 +17,7 @@ const handler = async (m, {conn, text}) => {
     const stickerr = await sticker(false, sremovebg, global.packname, global.author);
     conn.sendFile(m.chat, stickerr, 'sticker.webp', '', m, {asSticker: true});
   } catch (e) {
-    m.reply(tradutor.texto1);
+    m.reply(tradutor.text1);
   }
 };
 handler.command = /^sremovebg|removebg$/i;
