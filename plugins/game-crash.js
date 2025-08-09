@@ -5,14 +5,12 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     const idioma = global.db.data.users[m.sender]?.language || 'en';
     const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
     const txt = _translate.plugins.game_crash || {
-        start: "🚀 *CRASH GAME STARTED!* Bet: %bet XP\n\nCash out before it crashes!\nReply with *!cashout*",
+        start: "🚀 *CRASH GAME STARTED!* Bet: %bet XP\n\nCash out before it crashes!\nType *!cashout* to stop",
         crashed: "💥 *BOOM!* Crashed at %multiplierx\nYou lost %bet XP",
-        cashed: "💰 *CASH OUT!* %multiplierx\nYou won %win XP!",
         min_bet: "Minimum bet is 100 XP",
         no_xp: "You don't have enough XP!"
     };
 
-    // Game variables
     const bet = parseInt(args[0]);
     const user = global.db.data.users[m.sender];
     
@@ -21,104 +19,80 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     if (bet < 100) return m.reply(txt.min_bet);
     if (user.exp < bet) return m.reply(txt.no_xp);
 
-    // Start game
-    if (global.crashGame && global.crashGame.active) {
-        return m.reply("⚠️ A crash game is already in progress!");
+    // Initialize game if not exists
+    if (!global.crashGame) global.crashGame = {};
+    
+    // Check existing game
+    if (global.crashGame[m.chat]) {
+        return m.reply("⚠️ A crash game is already running in this chat!");
     }
 
-    global.crashGame = {
-        active: true,
+    // Start new game
+    global.crashGame[m.chat] = {
         player: m.sender,
         bet: bet,
         startTime: Date.now(),
-        multiplier: 1.0
+        multiplier: 1.0,
+        crashed: false
     };
 
     user.exp -= bet; // Deduct bet immediately
 
     // Send initial message
-    const startMsg = await m.reply(txt.start.replace('%bet', bet));
+    const startMsg = await conn.reply(m.chat, 
+        txt.start.replace('%bet', bet), 
+        m
+    );
+
+    // Store message ID for updates
+    global.crashGame[m.chat].msgId = startMsg.key.id;
 
     // Game simulation
-    let crashed = false;
     const crashPoint = (Math.random() * 5 + 1).toFixed(2); // Random crash between 1x-6x
     
-    const updateInterval = setInterval(async () => {
-        if (!global.crashGame.active) {
-            clearInterval(updateInterval);
+    const updateGame = async () => {
+        if (!global.crashGame[m.chat]) return;
+        
+        const game = global.crashGame[m.chat];
+        const elapsed = (Date.now() - game.startTime) / 1000;
+        game.multiplier = (1 + (elapsed * 0.1)).toFixed(2);
+
+        // Check for natural crash
+        if (game.multiplier >= crashPoint) {
+            game.crashed = true;
+            endGame(m.chat);
             return;
-        }
-
-        const elapsed = (Date.now() - global.crashGame.startTime) / 1000;
-        global.crashGame.multiplier = (1 + (elapsed * 0.1)).toFixed(2);
-
-        // Check if crashed naturally
-        if (global.crashGame.multiplier >= crashPoint) {
-            crashed = true;
-            endGame();
         }
 
         // Update message
         try {
             await conn.relayMessage(m.chat, {
                 protocolMessage: {
-                    key: startMsg.key,
+                    key: { id: game.msgId, remoteJid: m.chat, fromMe: true },
                     type: 14,
                     editedMessage: {
-                        conversation: `🚀 CRASH: ${global.crashGame.multiplier}x\n\n${txt.start.replace('%bet', bet)}`
+                        conversation: `🚀 CRASH: ${game.multiplier}x\n\n${txt.start.replace('%bet', bet)}`
                     }
                 }
             }, {});
         } catch (e) {
             console.error('Update error:', e);
         }
-    }, 1000);
 
-    // Cashout handler
-    const cashoutHandler = async (msg) => {
-        if (msg.sender !== m.sender || !msg.text.toLowerCase().includes('cashout')) return;
-        
-        clearInterval(updateInterval);
-        global.crashGame.active = false;
-        
-        const win = Math.floor(bet * global.crashGame.multiplier);
-        user.exp += win;
-        
-        await conn.reply(m.chat, 
-            txt.cashed
-                .replace('%multiplier', global.crashGame.multiplier)
-                .replace('%win', win), 
-            m
-        );
-        
-        conn.ev.off('messages.upsert', cashoutHandler);
-    };
-
-    // Crash handler
-    const endGame = async () => {
-        clearInterval(updateInterval);
-        global.crashGame.active = false;
-        
-        if (crashed) {
-            await conn.reply(m.chat, 
-                txt.crashed
-                    .replace('%multiplier', global.crashGame.multiplier)
-                    .replace('%bet', bet), 
-                m
-            );
+        // Continue if not crashed
+        if (!game.crashed) {
+            setTimeout(updateGame, 1000);
         }
-        
-        conn.ev.off('messages.upsert', cashoutHandler);
     };
 
-    // Listen for cashout
-    conn.ev.on('messages.upsert', cashoutHandler);
+    // Start the game loop
+    setTimeout(updateGame, 1000);
 
     // Auto-end after 30 seconds
     setTimeout(() => {
-        if (global.crashGame.active) {
-            crashed = true;
-            endGame();
+        if (global.crashGame[m.chat] && !global.crashGame[m.chat].crashed) {
+            global.crashGame[m.chat].crashed = true;
+            endGame(m.chat);
         }
     }, 30000);
 };
@@ -127,3 +101,39 @@ handler.help = ['crash <bet>'];
 handler.tags = ['game'];
 handler.command = ['crash'];
 export default handler;
+
+// End game function
+async function endGame(chatId) {
+    if (!global.crashGame[chatId]) return;
+    
+    const game = global.crashGame[chatId];
+    const conn = global.conn;
+    const txt = {
+        crashed: "💥 *BOOM!* Crashed at %multiplierx\nYou lost %bet XP",
+        cashed: "💰 *CASH OUT!* %multiplierx\nYou won %win XP!"
+    };
+
+    try {
+        if (game.cashedOut) {
+            const win = Math.floor(game.bet * game.multiplier);
+            global.db.data.users[game.player].exp += win;
+            await conn.reply(chatId, 
+                txt.cashed
+                    .replace('%multiplier', game.multiplier)
+                    .replace('%win', win), 
+                { quoted: { key: { id: game.msgId }, message: {} } }
+            );
+        } else {
+            await conn.reply(chatId, 
+                txt.crashed
+                    .replace('%multiplier', game.multiplier)
+                    .replace('%bet', game.bet), 
+                { quoted: { key: { id: game.msgId }, message: {} } }
+            );
+        }
+    } catch (e) {
+        console.error('End game error:', e);
+    } finally {
+        delete global.crashGame[chatId];
+    }
+}
