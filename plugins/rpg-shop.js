@@ -17,8 +17,8 @@ const handler = async (m, { conn, command, args }) => {
     const item = global.rpgshop.getItem(itemKey);
 
     if (!item) {
-      const notFoundMsg = tradutor.texto4 
-        ? tradutor.texto4.replace('{}', itemKey) 
+      const notFoundMsg = tradutor.text4 
+        ? tradutor.text4.replace('{}', itemKey) 
         : `Item "${itemKey}" not found in the shop!`;
       return conn.reply(m.chat, notFoundMsg, m);
     }
@@ -37,16 +37,16 @@ const handler = async (m, { conn, command, args }) => {
       global.db.data.users[m.sender][itemKey] = (global.db.data.users[m.sender][itemKey] || 0) + count;
 
       const successMsg = [
-        tradutor.texto1?.[0] || 'Purchase successful!',
-        `${tradutor.texto1?.[1] || 'You obtained'} : + ${count} ${item.name}`,
-        `${tradutor.texto1?.[2] || 'XP deducted'} -${totalCost} XP`,
-        tradutor.texto1?.[3] || 'Thank you for your purchase!'
+        tradutor.text1?.[0] || 'Purchase successful!',
+        `${tradutor.text1?.[1] || 'You obtained'} : + ${count} ${item.name}`,
+        `${tradutor.text1?.[2] || 'XP deducted'} -${totalCost} XP`,
+        tradutor.text1?.[3] || 'Thank you for your purchase!'
       ].join('\n');
 
       conn.reply(m.chat, successMsg, m);
     } else {
-      const failMsg = `${tradutor.texto2 || "You don't have enough XP to buy"} *${count}* ${item.name} ${
-        tradutor.texto3 || 'You need more XP!'
+      const failMsg = `${tradutor.text2 || "You don't have enough XP to buy"} *${count}* ${item.name} ${
+        tradutor.text3 || 'You need more XP!'
       }`;
       conn.reply(m.chat, failMsg, m);
     }
