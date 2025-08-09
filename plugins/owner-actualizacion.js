@@ -11,7 +11,7 @@ const handler = async (m, {conn, text, usedPrefix, command}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.owner_actualizacion
 
- conn.sendMessage(m.chat, {text: tradutor.texto1}, {quoted: m});  
+ conn.sendMessage(m.chat, {text: tradutor.text1}, {quoted: m});  
 try {
   async function checkRepoUpdates() {
     try {
@@ -22,11 +22,11 @@ try {
         previousCommitSHA = sha;
         previousUpdatedAt = message;
         previousCommitUser = login
-        conn.sendMessage(m.chat, {text: `${tradutor.texto2[0]} ${html_url}\n${tradutor.texto2[1]} ${message}\n${tradutor.texto2[2]} ${login}`}, {quoted: m});
+        conn.sendMessage(m.chat, {text: `${tradutor.text2[0]} ${html_url}\n${tradutor.text2[1]} ${message}\n${tradutor.text2[2]} ${login}`}, {quoted: m});
       }
     } catch (error) {
       console.error(error)
-      m.reply(tradutor.texto3);
+      m.reply(tradutor.text3);
     }
   }
   setInterval(checkRepoUpdates, 6000);
