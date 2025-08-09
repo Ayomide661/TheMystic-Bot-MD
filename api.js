@@ -435,6 +435,8 @@ global.rpgshopp = {
   }
 };
 
+global.crashGame = { active: false };
+
 /* File Watcher */
 const file = fileURLToPath(import.meta.url);
 watchFile(file, () => {
