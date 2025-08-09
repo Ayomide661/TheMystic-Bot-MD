@@ -6,13 +6,13 @@ const handler = async (m, {conn, text, usedPrefix, command}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.herramientas_fakereply
 
-  if (!text) return m.reply(`${tradutor.texto1[0]}\n\n*${usedPrefix + command}* ${tradutor.texto1[1]} @${m.sender.split`@`[0]} a`, null, {mentions: [m.sender]});
+  if (!text) return m.reply(`${tradutor.text1[0]}\n\n*${usedPrefix + command}* ${tradutor.text1[1]} @${m.sender.split`@`[0]} a`, null, {mentions: [m.sender]});
   const cm = copy(m);
   let who;
   if (text.includes('@0')) who = '0@s.whatsapp.net';
   else if (m.isGroup) who = cm.participant = await await m.mentionedJid[0];
   else who = m.chat;
-  if (!who) return m.reply(`${tradutor.texto1[0]}\n\n*${usedPrefix + command}* ${tradutor.texto1[1]} @${m.sender.split`@`[0]} a`, null, {mentions: [m.sender]});
+  if (!who) return m.reply(`${tradutor.text1[0]}\n\n*${usedPrefix + command}* ${tradutor.text1[1]} @${m.sender.split`@`[0]} a`, null, {mentions: [m.sender]});
   cm.key.fromMe = false;
   cm.message[m.mtype] = copy(m.msg);
   const sp = '@' + who.split`@`[0];
