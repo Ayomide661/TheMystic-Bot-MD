@@ -16,17 +16,17 @@ try {
     const bot = participants.find((u) => conn.decodeJid(u.id) === conn.user.jid) || {};
     const isBotAdmin = bot?.admin || false;
     const isParticipant = participants.some((u) => conn.decodeJid(u.id) === conn.user.jid);
-    const participantStatus = isParticipant ? tradutor.texto1[0] : tradutor.texto1[1];
+    const participantStatus = isParticipant ? tradutor.text1[0] : tradutor.text1[1];
     const totalParticipants = participants.length;
-    txt += `${tradutor.texto2[0]} ${i + 1}
-    ${tradutor.texto2[1]} ${await conn.getName(jid)}
-    ${tradutor.texto2[2]} ${jid}
-    ${tradutor.texto2[3]} ${isBotAdmin ? '✔ Sí' : '❌ No'}
-    ${tradutor.texto2[4]} ${participantStatus}
-    ${tradutor.texto2[5]} ${totalParticipants}
-    ${tradutor.texto2[6]} ${isBotAdmin ? `https://chat.whatsapp.com/${await conn.groupInviteCode(jid) || '--- (Error) ---'}` : '--- (No admin) ---'}\n\n`;
+    txt += `${tradutor.text2[0]} ${i + 1}
+    ${tradutor.text2[1]} ${await conn.getName(jid)}
+    ${tradutor.text2[2]} ${jid}
+    ${tradutor.text2[3]} ${isBotAdmin ? '✔ Sí' : '❌ No'}
+    ${tradutor.text2[4]} ${participantStatus}
+    ${tradutor.text2[5]} ${totalParticipants}
+    ${tradutor.text2[6]} ${isBotAdmin ? `https://chat.whatsapp.com/${await conn.groupInviteCode(jid) || '--- (Error) ---'}` : '--- (No admin) ---'}\n\n`;
   }
-  m.reply(`${tradutor.texto3} ${totalGroups}\n\n${txt}`.trim());
+  m.reply(`${tradutor.text3} ${totalGroups}\n\n${txt}`.trim());
 } catch {
   const groups = Object.entries(conn.chats).filter(([jid, chat]) => jid.endsWith('@g.us') && chat.isChats);
   const totalGroups = groups.length;
@@ -37,17 +37,17 @@ try {
     const bot = participants.find((u) => conn.decodeJid(u.id) === conn.user.jid) || {};
     const isBotAdmin = bot?.admin || false;
     const isParticipant = participants.some((u) => conn.decodeJid(u.id) === conn.user.jid);
-    const participantStatus = isParticipant ? tradutor.texto1[0] : tradutor.texto1[1];
+    const participantStatus = isParticipant ? tradutor.text1[0] : tradutor.text1[1];
     const totalParticipants = participants.length;    
-    txt += `${tradutor.texto2[0]} ${i + 1}
-    ${tradutor.texto2[1]} ${await conn.getName(jid)}
-    ${tradutor.texto2[2]} ${jid}
-    ${tradutor.texto2[3]} ${isBotAdmin ? '✔ Sí' : '❌ No'}
-    ${tradutor.texto2[4]} ${participantStatus}
-    ${tradutor.texto2[5]} ${totalParticipants}
-    ${tradutor.texto2[6]} ${isBotAdmin ? '--- (Error) ---' : '--- (No admin) ---'}\n\n`;
+    txt += `${tradutor.text2[0]} ${i + 1}
+    ${tradutor.text2[1]} ${await conn.getName(jid)}
+    ${tradutor.text2[2]} ${jid}
+    ${tradutor.text2[3]} ${isBotAdmin ? '✔ Sí' : '❌ No'}
+    ${tradutor.text2[4]} ${participantStatus}
+    ${tradutor.text2[5]} ${totalParticipants}
+    ${tradutor.text2[6]} ${isBotAdmin ? '--- (Error) ---' : '--- (No admin) ---'}\n\n`;
   }
-  m.reply(`${tradutor.texto3} ${totalGroups}\n\n${txt}`.trim());
+  m.reply(`${tradutor.text3} ${totalGroups}\n\n${txt}`.trim());
  }    
 };
 handler.help = ['groups', 'grouplist'];
