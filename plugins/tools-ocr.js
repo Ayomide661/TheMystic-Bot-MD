@@ -16,7 +16,7 @@ const handler = async (m, {conn}) => {
     if (res.status !== 200) throw res.statusText;
     const json = await res.json();
     m.reply(json?.ParsedResults?.[0]?.ParsedText);
-  } else throw tradutor.texto1;
+  } else throw tradutor.text1;
 };
-handler.command = /^ocr|totexto$/i;
+handler.command = /^ocr|totext$/i;
 export default handler;
