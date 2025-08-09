@@ -13,7 +13,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   );
   const tradutor = _translate.plugins.buscador_lyrics;
   const teks = text ? text : m.quoted && m.quoted.text ? m.quoted.text : "";
-  if (!teks) throw `*${tradutor.texto1} ${usedPrefix + command} beret ojala*`;
+  if (!teks) throw `*${tradutor.text1} ${usedPrefix + command} beret ojala*`;
   try {
     const result = await getTracks(teks);
     let lyrics;
@@ -50,10 +50,10 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
       .replace("http://cdn-preview-", "https://cdns-preview-")
       .replace(".deezer.com", ".dzcdn.net");
 
-    const textoLetra = `${tradutor.texto2[0]} *${tituloL || ""}*\n${tradutor.texto2[1]}  *${artistaL || ""}*\n\n${tradutor.texto2[2]} \n${lyrics.lyrics || "Lyrics not found."}`;
+    const textLetra = `${tradutor.text2[0]} *${tituloL || ""}*\n${tradutor.text2[1]}  *${artistaL || ""}*\n\n${tradutor.text2[2]} \n${lyrics.lyrics || "Lyrics not found."}`;
     await conn.sendMessage(
       m.chat,
-      { image: { url: img }, caption: textoLetra },
+      { image: { url: img }, caption: textLetra },
       { quoted: m },
     );
     await conn.sendMessage(
@@ -67,7 +67,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     );
   } catch (e) {
     console.log(`Error: ${e.message}`);
-    throw `*${tradutor.texto2[3]}*`;
+    throw `*${tradutor.text2[3]}*`;
   }
 };
 handler.help = ["lirik", "letra"].map((v) => v + " <Apa>");
