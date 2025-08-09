@@ -18,18 +18,18 @@ const handler = async (m, {conn, args, isPrems}) => {
   const len = args[0] && args[0].length > 0 ? Math.min(100, Math.max(parseInt(args[0]), 10)) : Math.min(10, sortedP.length);
   
   let infoprem = `
-${tradutor.texto1[0]}
+${tradutor.text1[0]}
 
-${tradutor.texto1[1]} ${userr}
-${prem ? `${tradutor.texto1[2]} ${clockString(usuario - new Date() * 1, tradutor)}` : (isPrems ? `${tradutor.texto1[3]}` : tradutor.texto1[4])}
+${tradutor.text1[1]} ${userr}
+${prem ? `${tradutor.text1[2]} ${clockString(usuario - new Date() * 1, tradutor)}` : (isPrems ? `${tradutor.text1[3]}` : tradutor.text1[4])}
 
-${tradutor.texto1[5]} ${sortedP.slice(0, len).map(({jid, name, premiumTime, prem, registered}, i) => `
+${tradutor.text1[5]} ${sortedP.slice(0, len).map(({jid, name, premiumTime, prem, registered}, i) => `
 
-${tradutor.texto1[6]} ${'@' + jid.split`@`[0]}
-${premiumTime > 0 ? `${tradutor.texto1[7]} ${clockString(premiumTime - new Date() * 1, tradutor)}` : tradutor.texto1[8]}`).join('')}`.trim();
+${tradutor.text1[6]} ${'@' + jid.split`@`[0]}
+${premiumTime > 0 ? `${tradutor.text1[7]} ${clockString(premiumTime - new Date() * 1, tradutor)}` : tradutor.text1[8]}`).join('')}`.trim();
 
   if (sortedP.filter((user) => user.premiumTime).length === 0) {
-    infoprem = `${tradutor.texto2[0]} ${userr}\n${prem ? `${tradutor.texto2[1]} ${clockString(usuario - new Date() * 1, tradutor)}` : tradutor.texto2[2]}\n\n${tradutor.texto2[3]}`.trim();
+    infoprem = `${tradutor.text2[0]} ${userr}\n${prem ? `${tradutor.text2[1]} ${clockString(usuario - new Date() * 1, tradutor)}` : tradutor.text2[2]}\n\n${tradutor.text2[3]}`.trim();
   }
 
   m.reply(infoprem, null, {mentions: conn.parseMention(infoprem)});
@@ -49,7 +49,7 @@ function clockString(ms, tradutor) {
   const months = Math.floor(days / 30);
   const years = Math.floor(days / 365);
   
-  return `${tradutor.texto3[0]} ${years}\n${tradutor.texto3[1]} ${months}\n${tradutor.texto3[2]} ${weeks}\n${tradutor.texto3[3]} ${days}\n${tradutor.texto3[4]} ${hours % 24}\n${tradutor.texto3[5]} ${minutes % 60}\n${tradutor.texto3[6]} ${seconds % 60}`;
+  return `${tradutor.text3[0]} ${years}\n${tradutor.text3[1]} ${months}\n${tradutor.text3[2]} ${weeks}\n${tradutor.text3[3]} ${days}\n${tradutor.text3[4]} ${hours % 24}\n${tradutor.text3[5]} ${minutes % 60}\n${tradutor.text3[6]} ${seconds % 60}`;
 }
 
 function sort(property, ascending = true) {
