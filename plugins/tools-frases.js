@@ -7,19 +7,19 @@ const handler = async (m, { conn, command }) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.frase_frases
 
-  global.frasesromanticas = tradutor.texto3;
+  global.frasesromanticas = tradutor.text3;
 
-  global.consejos = tradutor.texto4;
+  global.consejos = tradutor.text4;
 
   if (command === 'consejo') {
     const consejo = consejos[Math.floor(Math.random() * consejos.length)];
-    const mensaje = `╭─◆────◈⚘◈─────◆─╮\n\n⠀⠀🌟 ${tradutor.texto1} 🌟\n\n❥ ${consejo}\n\n╰─◆────◈⚘◈─────◆─╯`;
+    const mensaje = `╭─◆────◈⚘◈─────◆─╮\n\n⠀⠀🌟 ${tradutor.text1} 🌟\n\n❥ ${consejo}\n\n╰─◆────◈⚘◈─────◆─╯`;
     await m.reply(mensaje);
   }
 
   if (command === 'fraseromantica') {
     const frase_romantica = frasesromanticas[Math.floor(Math.random() * frasesromanticas.length)];
-    const mensaje = `╭─◆────◈⚘◈─────◆─╮\n\n⠀⠀💖 ${tradutor.texto2} 💖\n\n❥ ${frase_romantica}\n\n╰─◆────◈⚘◈─────◆─╯`;
+    const mensaje = `╭─◆────◈⚘◈─────◆─╮\n\n⠀⠀💖 ${tradutor.text2} 💖\n\n❥ ${frase_romantica}\n\n╰─◆────◈⚘◈─────◆─╯`;
     await m.reply(mensaje);
   }
 
