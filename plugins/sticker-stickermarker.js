@@ -13,18 +13,18 @@ const handler = async (m, {conn, usedPrefix, text}) => {
   const effect = text.trim().toLowerCase();
   if (!effects.includes(effect)) {
     throw `
-${tradutor.texto1[0]}
-${tradutor.texto1[1]} ${usedPrefix}stickermaker ${tradutor.texto1[2]} 
-${tradutor.texto1[3]}
-${tradutor.texto1[4]} ${usedPrefix}stickermaker jail
-${tradutor.texto1[5]}
+${tradutor.text1[0]}
+${tradutor.text1[1]} ${usedPrefix}stickermaker ${tradutor.text1[2]} 
+${tradutor.text1[3]}
+${tradutor.text1[4]} ${usedPrefix}stickermaker jail
+${tradutor.text1[5]}
 ${effects.map((effect) => `_> ${effect}_`).join('\n')}
 `.trim();
   }
   const q = m.quoted ? m.quoted : m;
   const mime = (q.msg || q).mimetype || '';
-  if (!mime) throw tradutor.texto2;
-  if (!/image\/(jpe?g|png)/.test(mime)) throw tradutor.texto3;
+  if (!mime) throw tradutor.text2;
+  if (!/image\/(jpe?g|png)/.test(mime)) throw tradutor.text3;
   const img = await q.download();
   const url = await uploadImage(img);
   const apiUrl = global.API('https://some-random-api.com/canvas/', encodeURIComponent(effect), {
@@ -34,7 +34,7 @@ ${effects.map((effect) => `_> ${effect}_`).join('\n')}
     const stiker = await sticker(null, apiUrl, global.packname, global.author);
     conn.sendFile(m.chat, stiker, null, {asSticker: true});
   } catch (e) {
-    m.reply(tradutor.texto4);
+    m.reply(tradutor.text4);
     await conn.sendFile(m.chat, apiUrl, 'image.png', null, m);
   }
 };
