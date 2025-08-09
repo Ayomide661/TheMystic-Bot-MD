@@ -6,10 +6,10 @@ const handler = async (m, { conn, text, usedPrefix: prefix }) => {
     const datas = global;
     const language = datas.db.data.users[m.sender].language || global.defaultLanguage;
     const _translate = JSON.parse(fs.readFileSync(`./src/languages/${language}.json`));
-    const traductor = _translate.plugins.search_yts;
+    const translator = _translate.plugins.search_yts;
     const device = await getDevice(m.key.id);
 
-  if (!text) throw `⚠️ *${traductor.text1}*`;
+  if (!text) throw `⚠️ *${translator.text1}*`;
 
   if (device !== 'desktop' || device !== 'web') {      
 
@@ -21,7 +21,7 @@ const handler = async (m, { conn, text, usedPrefix: prefix }) => {
 
   var messa = await prepareWAMessageMedia({ image: {url: randomVideo.thumbnail}}, { upload: conn.waUploadToServer })
   const interactiveMessage = {
-    body: { text: `*—◉ Search results:* ${results.videos.length}\n*—◉ Random video:*\n*-› Title:* ${randomVideo.title}\n*-› Author:* ${randomVideo.author.name}\n*-› Views:* ${randomVideo.views}\n*-› ${traductor.text2[0]}:* ${randomVideo.url}\n*-› Thumbnail:* ${randomVideo.thumbnail}`.trim() },
+    body: { text: `*—◉ Search results:* ${results.videos.length}\n*—◉ Random video:*\n*-› Title:* ${randomVideo.title}\n*-› Author:* ${randomVideo.author.name}\n*-› Views:* ${randomVideo.views}\n*-› ${translator.text2[0]}:* ${randomVideo.url}\n*-› Thumbnail:* ${randomVideo.thumbnail}`.trim() },
     footer: { text: `${global.wm}`.trim() },  
       header: {
           title: `*< YouTube Search />*\n`,
@@ -71,17 +71,17 @@ const handler = async (m, { conn, text, usedPrefix: prefix }) => {
   const datas = global;
   const language = datas.db.data.users[m.sender].language || global.defaultLanguage;
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${language}.json`));
-  const traductor = _translate.plugins.search_yts;      
+  const translator = _translate.plugins.search_yts;      
   const results = await yts(text);
   const tes = results.all;
   const teks = results.all.map((v) => {
     switch (v.type) {
       case 'video': return `
 ° *_${v.title}_*
-↳ 🫐 *_${traductor.text2[0]}_* ${v.url}
-↳ 🕒 *_${traductor.text2[1]}_* ${v.timestamp}
-↳ 📥 *_${traductor.text2[2]}_* ${v.ago}
-↳ 👁 *_${traductor.text2[3]}_* ${v.views}`;
+↳ 🫐 *_${translator.text2[0]}_* ${v.url}
+↳ 🕒 *_${translator.text2[1]}_* ${v.timestamp}
+↳ 📥 *_${translator.text2[2]}_* ${v.ago}
+↳ 👁 *_${translator.text2[3]}_* ${v.views}`;
     }
   }).filter((v) => v).join('\n\n◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦\n\n');
   conn.sendFile(m.chat, tes[0].thumbnail, 'error.jpg', teks.trim(), m);      
