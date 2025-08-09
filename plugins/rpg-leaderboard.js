@@ -5,19 +5,23 @@ const handler = async (m, { conn, args }) => {
     const tradutor = _translate.plugins.rpg_leaderboard;
 
     // Get registered users
-    const users = Object.entries(global.db.data.users)
-      .filter(([_, user]) => user.registered)
-      .map(([jid, user]) => ({
-        jid,
-        name: conn.getName(jid),
-        exp: Number(user.exp) || 0,
-        limit: Number(user.limit) || 0,
-        level: Number(user.level) || 0
-      }))
-      .filter(user => user.jid && user.jid.endsWith("@s.whatsapp.net"));
+    const users = await Promise.all(
+      Object.entries(global.db.data.users)
+        .filter(([_, user]) => user.registered)
+        .map(async ([jid, user]) => {
+          const name = await conn.getName(jid).catch(() => 'Unknown user');
+          return {
+            jid,
+            name,
+            exp: Number(user.exp) || 0,
+            limit: Number(user.limit) || 0,
+            level: Number(user.level) || 0
+          };
+        })
+    ).then(results => results.filter(user => user.jid.endsWith("@s.whatsapp.net")));
 
     if (users.length === 0) {
-      return conn.reply(m.chat, 'No registered users found for leaderboard', m);
+      return conn.reply(m.chat, tradutor.no_users || 'No registered users found for leaderboard', m);
     }
 
     // Sort users
@@ -25,37 +29,35 @@ const handler = async (m, { conn, args }) => {
     const sortedLim = [...users].sort((a, b) => b.limit - a.limit);
     const sortedLevel = [...users].sort((a, b) => b.level - a.level);
 
-    // Determine leaderboard length
+    // Leaderboard length (default: 10, max: 100)
     const len = Math.min(
       args[0] && !isNaN(args[0]) ? Math.max(parseInt(args[0]), 10) : 10, 
       100
     );
 
-    // Progress bar function
+    // Progress bar
     const createProgressBar = (percentage) => {
       const bars = 20;
       const filled = Math.round(percentage * bars);
       return `[${'█'.repeat(filled)}${'░'.repeat(bars - filled)}] ${Math.round(percentage*100)}%`;
     };
 
-    // Create leaderboard section - ONLY CHANGE IS HERE (added .toLocaleString())
+    // Leaderboard section
     const createSection = (title, icon, list, valueName, unit) => {
       if (list.length === 0) return '';
-      
-      const maxValue = list[0][valueName] || 1;
+      const maxValue = Math.max(list[0][valueName] || 1, 1); // Ensure not zero
       return `
 ┣━━━〘 ${icon} ${title} 〙━━━⬣
 ${list.slice(0, len).map((user, i) => {
   const position = `${i+1}.`.padEnd(3);
-  const name = `@${user.jid.split('@')[0].padEnd(15)}`;
-  const value = `${user[valueName].toLocaleString()} ${unit}`.padEnd(10); // Added .toLocaleString()
-  const progress = createProgressBar(user[valueName]/maxValue);
-  
+  const name = `${user.name}`.slice(0, 15).padEnd(15); // Use stored name
+  const value = `${user[valueName].toLocaleString()} ${unit}`.padEnd(10);
+  const progress = createProgressBar(user[valueName] / maxValue);
   return `┃ ${position} ${name} ${value}\n┃   ${progress}`;
 }).join('\n')}`;
     };
 
-    // Build the message
+    // Build message
     const message = `╭━━━〘 ${'LEADERBOARD'.padEnd(15)}〙━━━⬣
 ┃
 ┃ 🏆 *Outstanding Adventurers*
@@ -74,12 +76,12 @@ ${createSection('TOP LEVELS', '🎚️', sortedLevel, 'level', 'LEVEL')}
 
     await conn.sendMessage(m.chat, { 
       text: message, 
-      mentions: conn.parseMention(message) 
+      mentions: users.map(u => u.jid) // Mention all users in the leaderboard
     }, { quoted: m });
 
   } catch (error) {
     console.error('Leaderboard error:', error);
-    conn.reply(m.chat, 'An error occurred while generating the leaderboard', m);
+    conn.reply(m.chat, tradutor.error || 'An error occurred while generating the leaderboard', m);
   }
 };
 
