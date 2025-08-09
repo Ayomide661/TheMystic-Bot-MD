@@ -6,8 +6,8 @@ const handler = async (m, {conn}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.herramientas_readviewonce
 
-  if (!m.quoted) throw tradutor.texto1;
-  if (!m.quoted.viewOnce) throw tradutor.texto2;
+  if (!m.quoted) throw tradutor.text1;
+  if (!m.quoted.viewOnce) throw tradutor.text2;
   const msg = m.quoted;
   //const type = Object.keys(msg);
   const type = msg.mtype 
