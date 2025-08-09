@@ -9,7 +9,7 @@ let handler = async (m, { conn, args, usedPrefix, command, text }) => {
         const tradutor = _translate.plugins.herramientas_chatgpt;
     
     try {
-        if (!text) return m.reply(tradutor.texto1[0]);
+        if (!text) return m.reply(tradutor.text1[0]);
         
         let mediax = null;
         let userID = m.sender;
@@ -23,7 +23,7 @@ let handler = async (m, { conn, args, usedPrefix, command, text }) => {
             if (mediax) {
                 try {
                     const descResponse = await axios.post("https://luminai.my.id", {
-                        content: "Describe detalladamente todo lo que ves en esta imagen, incluyendo objetos, personas, colores, texto, ubicación, ambiente y cualquier detalle relevante.",
+                        content: "Describe detalladamente todo lo que ves en esta imagen, incluyendo objetos, personas, colores, text, ubicación, ambiente y cualquier detalle relevante.",
                         user: userID + '_img_desc',
                         prompt: "Eres un experto analizador de imágenes. Proporciona una descripción completa y detallada.",
                         imageBuffer: mediax,
@@ -82,11 +82,11 @@ let handler = async (m, { conn, args, usedPrefix, command, text }) => {
         
     } catch (error) {
         console.error('Error completo:', error);
-        m.reply(tradutor?.texto4);
+        m.reply(tradutor?.text4);
     }
 };
 
-handler.help = ['openai <texto>'];
+handler.help = ['openai <text>'];
 handler.tags = ['ai'];
 handler.command = /^(openai|chatgpt|ia|mystic|mysticbot)$/i;
 export default handler;
