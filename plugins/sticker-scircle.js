@@ -17,7 +17,7 @@ const handler = async (m, {conn, text}) => {
     const stiker = await sticker(null, scircle, global.packname, global.author);
     conn.sendFile(m.chat, stiker, 'sticker.webp', '', m, {asSticker: true});
   } catch (e) {
-    m.reply(tradutor.texto1);
+    m.reply(tradutor.text1);
   }
 };
 handler.help = ['scircle <img>'];
