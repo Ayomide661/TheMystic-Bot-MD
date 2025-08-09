@@ -7,14 +7,14 @@ const handler = async (m, {conn, text}) => {
   const tradutor = _translate.plugins.herramientas_inspect
 
   const [, code] = text.match(/chat\.whatsapp\.com\/(?:invite\/)?([0-9A-Za-z]{20,24})/i) || [];
-  if (!code) throw tradutor.texto1;
+  if (!code) throw tradutor.text1;
   const res = await conn.query({tag: 'iq', attrs: {type: 'get', xmlns: 'w:g2', to: '@g.us'}, content: [{tag: 'invite', attrs: {code}}]});
   const data = extractGroupMetadata(res);
-  const txt = `${tradutor.texto2[0]} ${data.id}\n${tradutor.texto2[1]} ${data.subject}\n${tradutor.texto2[2]} ${data.creation}\n${tradutor.texto2[3]} ${data.owner}\n${tradutor.texto2[4]}\n${data.desc}`;
+  const txt = `${tradutor.text2[0]} ${data.id}\n${tradutor.text2[1]} ${data.subject}\n${tradutor.text2[2]} ${data.creation}\n${tradutor.text2[3]} ${data.owner}\n${tradutor.text2[4]}\n${data.desc}`;
   
   const pp = await conn.profilePictureUrl(data.id, 'image').catch(console.error);
   if (pp) return conn.sendMessage(m.chat, {image: {url: pp}, caption: txt}, {quoted: m});
-  const groupinfo = `${tradutor.texto2[0]}* ${data.id}\n${tradutor.texto2[1]} ${data.subject}\n${tradutor.texto2[2]} ${data.creation}\n${tradutor.texto2[3]} ${data.owner}\n${tradutor.texto2[4]}\n${data.desc}`;
+  const groupinfo = `${tradutor.text2[0]}* ${data.id}\n${tradutor.text2[1]} ${data.subject}\n${tradutor.text2[2]} ${data.creation}\n${tradutor.text2[3]} ${data.owner}\n${tradutor.text2[4]}\n${data.desc}`;
   await conn.reply(m.chat, groupinfo, m);
 };
 handler.command = /^(inspect)$/i;
