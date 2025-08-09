@@ -61,7 +61,6 @@ const handler = async (m, { args, usedPrefix, command }) => {
   const spinMsg = await m.reply('🎰 Spinning...');
   await delay(1500); // 1.5-second delay
   await spinMsg.delete();
- 
 
   // Calculate win/loss
   let result;
