@@ -6,7 +6,7 @@ const handler = async (m, { conn, isPrems }) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.rpg_work
 
-  global.work = tradutor.texto1;
+  global.work = tradutor.text1;
 
 
   let enviando;
