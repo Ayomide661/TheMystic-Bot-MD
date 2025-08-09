@@ -1,8 +1,13 @@
 {
-  "plugins": {
-    "search_yts": {
-      "text1": "Please enter a search term",
-      "text2": ["URL", "Duration", "Uploaded", "Views"]
-    }
-  }
+  "text1": "Please enter a search term",
+  "text2": ["URL", "Duration", "Uploaded", "Views"],
+  "searchResults": "Search results",
+  "randomVideo": "Random video",
+  "title": "Title",
+  "author": "Author",
+  "views": "Views",
+  "thumbnail": "Thumbnail",
+  "optionsTitle": "AVAILABLE OPTIONS",
+  "downloadMP3": "Download MP3",
+  "downloadMP4": "Download MP4"
 }
