@@ -1,5 +1,3 @@
-
-
 const handler = async (m, { conn, isPrems }) => {
   const datas = global
   const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
@@ -8,14 +6,13 @@ const handler = async (m, { conn, isPrems }) => {
 
   global.work = tradutor.text1;
 
-
   let enviando;
   if (enviando) return
   enviando = true
   const hasil = Math.floor(Math.random() * 5000);
   const time = global.db.data.users[m.sender].lastwork + 600000;
-  if (new Date - global.db.data.users[m.sender].lastwork < 600000) throw `⚔️ *¡Espera un momento pequeño aventurero!* ⚔️\n\n*—◉ Regresa a la travesía en ${msToTime(time - new Date())} ⏳*`;
-  conn.sendMessage(m.chat, { text: `🏞️ *Te embarcas en una emocionante aventura:*\n\n🛠️ *${pickRandom(global.work)}*\n\n*¡Ganaste ${hasil} exp por tu valentía!*` }, { quoted: m });
+  if (new Date - global.db.data.users[m.sender].lastwork < 600000) throw `⚔️ *Wait a moment brave adventurer!* ⚔️\n\n*—◉ Return to your adventure in ${msToTime(time - new Date())} ⏳*`;
+  conn.sendMessage(m.chat, { text: `🏞️ *You embark on an exciting adventure:*\n\n🛠️ *${pickRandom(global.work)}*\n\n*You earned ${hasil} exp for your bravery!*` }, { quoted: m });
   global.db.data.users[m.sender].exp += hasil;
   global.db.data.users[m.sender].lastwork = new Date() * 1;
   enviando = false
@@ -34,11 +31,9 @@ function msToTime(duration) {
   hours = (hours < 10) ? '0' + hours : hours;
   minutes = (minutes < 10) ? '0' + minutes : minutes;
   seconds = (seconds < 10) ? '0' + seconds : seconds;
-  return minutes + ' minutos ' + seconds + ' segundos ';
+  return minutes + ' minutes ' + seconds + ' seconds ';
 }
 
 function pickRandom(list) {
   return list[Math.floor(list.length * Math.random())];
 }
-
-
