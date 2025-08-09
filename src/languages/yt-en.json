@@ -1,0 +1,8 @@
+{
+  "plugins": {
+    "search_yts": {
+      "text1": "Please enter a search term",
+      "text2": ["URL", "Duration", "Uploaded", "Views"]
+    }
+  }
+}
