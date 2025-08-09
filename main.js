@@ -134,7 +134,7 @@ const methodCodeQR = process.argv.includes('--method=qr');
 const methodCode = !!phoneNumber || process.argv.includes('--method=code');
 const MethodMobile = process.argv.includes("mobile");
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-const question = (texto) => new Promise((resolver) => rl.question(texto, resolver));
+const question = (text) => new Promise((resolver) => rl.question(text, resolver));
 
 let opcion;
 if (methodCodeQR) opcion = '1';
