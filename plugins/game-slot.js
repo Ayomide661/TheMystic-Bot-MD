@@ -57,11 +57,11 @@ const handler = async (m, { args, usedPrefix, command }) => {
   }
 
   // Optional: Add spinning animation (uncomment if you want it)
-  /*
+  
   const spinMsg = await m.reply('🎰 Spinning...');
   await delay(1500); // 1.5-second delay
   await spinMsg.delete();
-  */
+ 
 
   // Calculate win/loss
   let result;
