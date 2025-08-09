@@ -14,8 +14,20 @@ const handler = async (m, { conn }) => {
     const usertag = '@' + m.sender.split('@')[0];
     const currentLevel = user.level || 1;
 
-    // Check if can level up
-    if (!canLevelUp(currentLevel, user.exp, global.multiplier)) {
+    // Calculate how many levels can be gained
+    let levelsToGain = 0;
+    let tempLevel = user.level;
+    let remainingXP = user.exp;
+    
+    while (canLevelUp(tempLevel, remainingXP, global.multiplier)) {
+      const { xp } = xpRange(tempLevel, global.multiplier);
+      remainingXP -= xp;
+      tempLevel++;
+      levelsToGain++;
+    }
+
+    // If no levels can be gained, show progress
+    if (levelsToGain === 0) {
       const { min, xp } = xpRange(currentLevel, global.multiplier);
       const progress = user.exp - min;
       const progressBar = createProgressBar(progress / xp);
@@ -32,13 +44,14 @@ const handler = async (m, { conn }) => {
       );
     }
 
-    // Level up process
-    const beforeLevel = currentLevel;
-    let levelsGained = 0;
+    // Apply level ups
+    const beforeLevel = user.level;
+    user.level += levelsToGain;
     
-    while (canLevelUp(user.level, user.exp, global.multiplier)) {
-      user.level++;
-      levelsGained++;
+    // XP deduction (optional - remove if you don't want to deduct XP)
+    for (let i = 0; i < levelsToGain; i++) {
+      const { xp } = xpRange(beforeLevel + i, global.multiplier);
+      user.exp -= xp;
     }
 
     // Send level up notification
@@ -59,7 +72,8 @@ const handler = async (m, { conn }) => {
         `┃\n` +
         `┃ Previous: ${beforeLevel}\n` +
         `┃ New: ${user.level}\n` +
-        `┃ Levels gained: +${levelsGained}\n` +
+        `┃ Levels gained: +${levelsToGain}\n` +
+        `┃ XP used: ${user.exp}\n` + // Shows remaining XP
         `┃ Role: ${user.role || 'No role'}\n` +
         `┃\n` +
         `┗━━━━━━━━⬣`,
@@ -73,7 +87,8 @@ const handler = async (m, { conn }) => {
         `┃ 🎉 ${name}\n` +
         `┃\n` +
         `┃ Leveled up to ${user.level}!\n` +
-        `┃ (+${levelsGained} levels)\n` +
+        `┃ (+${levelsToGain} levels)\n` +
+        `┃ XP used: ${user.exp}\n` +
         `┃\n` +
         `┗━━━━━━━━⬣`,
         m
@@ -85,11 +100,10 @@ const handler = async (m, { conn }) => {
   }
 };
 
-// Helper function for progress bar
+// Progress bar helper
 function createProgressBar(percentage) {
-  const filled = '█'.repeat(Math.round(percentage * 10));
-  const empty = '░'.repeat(10 - filled.length);
-  return `[${filled}${empty}] ${Math.round(percentage * 100)}%`;
+  const filled = Math.round(percentage * 10);
+  return `[${'█'.repeat(filled)}${'░'.repeat(10 - filled)}] ${Math.round(percentage * 100)}%`;
 }
 
 handler.help = ['levelup'];
