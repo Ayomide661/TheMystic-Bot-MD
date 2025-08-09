@@ -11,14 +11,14 @@ const handler = async (m, {conn, usedPrefix, command}) => {
  try {    
   let q = m.quoted ? m.quoted : m;
   let mime = (q.msg || q).mimetype || q.mediaType || "";
-  if (!mime) throw `${tradutor.texto1} ${usedPrefix + command}*`;
-  if (!/image\/(jpe?g|png)/.test(mime)) throw `${tradutor.texto2[0]} (${mime}) ${tradutor.texto2[1]}`;
-  m.reply(tradutor.texto3);
+  if (!mime) throw `${tradutor.text1} ${usedPrefix + command}*`;
+  if (!/image\/(jpe?g|png)/.test(mime)) throw `${tradutor.text2[0]} (${mime}) ${tradutor.text2[1]}`;
+  m.reply(tradutor.text3);
   let img = await q.download?.();
   let pr = await ihancer(img, { method: 1, size: 'high' });
   conn.sendMessage(m.chat, {image: pr}, {quoted: m});
  } catch {
-  throw tradutor.texto4;
+  throw tradutor.text4;
  }
 };
 handler.help = ["remini", "hd", "enhance"];
