@@ -24,12 +24,12 @@ const handler = async (m, { usedPrefix }) => {
 
   // Main currency balance
   let balanceMsg = `
-${translator.texto1[0]}
-${translator.texto1[1]} ${name}
-${translator.texto1[2]} ${format(user.limit || 0)}💎
-${translator.texto1[3]} ${format(user.exp || 0)} XP
-${translator.texto1[4]} ${format(user.money || 0)}👾
-${translator.texto1[5]}\n`;
+${translator.text1[0]}
+${translator.text1[1]} ${name}
+${translator.text1[2]} ${format(user.limit || 0)}💎
+${translator.text1[3]} ${format(user.exp || 0)} XP
+${translator.text1[4]} ${format(user.money || 0)}👾
+${translator.text1[5]}\n`;
 
   // Inventory categories
   const categories = {
@@ -62,9 +62,9 @@ ${translator.texto1[5]}\n`;
 
   // Combine messages
   const fullMessage = balanceMsg + inventoryMsg + `
-❏ *${usedPrefix}buy* ${translator.texto1[6] || 'item'}
-❏ *${usedPrefix}buyall* ${translator.texto1[7] || 'max amount'}
-❏ *${usedPrefix}inventory* ${translator.texto1[8] || 'detailed inventory'}`;
+❏ *${usedPrefix}buy* ${translator.text1[6] || 'item'}
+❏ *${usedPrefix}buyall* ${translator.text1[7] || 'max amount'}
+❏ *${usedPrefix}inventory* ${translator.text1[8] || 'detailed inventory'}`;
 
   m.reply(fullMessage);
 };
