@@ -9,19 +9,19 @@ const handler = async (m, {conn, args, usedPrefix, command}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.herramientas_igstalk
 
-  if (!args[0]) throw `${tradutor.texto1} ${usedPrefix + command} luisitocomunica*`;
+  if (!args[0]) throw `${tradutor.text1} ${usedPrefix + command} luisitocomunica*`;
   const res = await igstalk(args[0].replace(/^@/, ''));
   const res2 = await fetch(`https://api.lolhuman.xyz/api/stalkig/${args[0].replace(/^@/, '')}?apikey=${lolkeysapi}`);
   const res3 = await res2.json();
   const json = JSON.parse(JSON.stringify(res));
-  const iggs = `_*${tradutor.texto2[0]}*_\n
-${tradutor.texto2[1]} ${json.fullname}
-${tradutor.texto2[2]} ${json.username}
-${tradutor.texto2[3]}:* ${json.followers}
-${tradutor.texto2[4]} ${json.following}
-${tradutor.texto2[5]} ${json.post}
-${tradutor.texto2[6]} https://instagram.com/${json.username.replace(/^@/, '')}
-${tradutor.texto2[7]}\n${json.bio}`.trim();
+  const iggs = `_*${tradutor.text2[0]}*_\n
+${tradutor.text2[1]} ${json.fullname}
+${tradutor.text2[2]} ${json.username}
+${tradutor.text2[3]}:* ${json.followers}
+${tradutor.text2[4]} ${json.following}
+${tradutor.text2[5]} ${json.post}
+${tradutor.text2[6]} https://instagram.com/${json.username.replace(/^@/, '')}
+${tradutor.text2[7]}\n${json.bio}`.trim();
   const aa = `${res3.result.photo_profile || res.profile}`;
   await conn.sendFile(m.chat, aa, 'error.jpg', iggs, m);
 };
