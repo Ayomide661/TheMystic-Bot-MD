@@ -14,7 +14,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     } else { 
       who = m.chat;
     }
-      const textquien = `${tradutor.texto1}\n◉ ${usedPrefix + command} @${global.suittag}`;
+      const textquien = `${tradutor.text1}\n◉ ${usedPrefix + command} @${global.suittag}`;
     if (who === m.chat && m.isGroup || !who && m.isGroup) return m.reply(textquien, m.chat, {mentions: conn.parseMention(textquien)});
   try {
     let name;
@@ -30,7 +30,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
     let stiker = await sticker(null, url, `${name2} le dio una bofetada a ${name}`, null);
     conn.sendFile(m.chat, stiker, null, {asSticker: true}, m, true, {contextInfo: {forwardingScore: 200, isForwarded: true}}, {quoted: m});
   } catch {
-    throw tradutor.texto2;
+    throw tradutor.text2;
   };
 };
 handler.help = ["slap <@tag>"];
