@@ -36,11 +36,11 @@ async function wikipedia(querry) {
   }
 }
 const handler = async (m, {conn, text, usedPrefix, command}) => {
-  if (!text) throw `*${tradutor.texto1[0]} *${usedPrefix + command} ${tradutor.texto1[1]} *${usedPrefix + command} Estrellas*`;
+  if (!text) throw `*${tradutor.text1[0]} *${usedPrefix + command} ${tradutor.text1[1]} *${usedPrefix + command} Estrellas*`;
   wikipedia(`${text}`).then((res) => {
-    m.reply(`*${tradutor.texto2}*\n\n` + res.result.isi);
+    m.reply(`*${tradutor.text2}*\n\n` + res.result.isi);
   }).catch(() => {
-    m.reply(`*${tradutor.texto3}*`);
+    m.reply(`*${tradutor.text3}*`);
   });
 };
 handler.help = ['wikipedia'].map((v) => v + ' <apa>');
