@@ -1,27 +1,52 @@
-/* Created By https://github.com/ALBERTO9883 */
-import fs from 'fs';
 import fetch from 'node-fetch';
-import {googleImage} from '@bochilteam/scraper';
+import { googleImage } from '@bochilteam/scraper';
 
+const handler = async (m, { text, usedPrefix, command, conn }) => {
+  // Language system (keep your existing implementation)
+  const datas = global;
+  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje;
+  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
+  const tradutor = _translate.plugins.buscador_stickersearch2;
 
-const handler = async (m, {text, usedPrefix, command, conn}) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.buscador_stickersearch2
+  if (!text) throw `*${tradutor.text1}*`; // "Please enter a search term"
 
-  if (!text) throw `*${tradutor.texto1}*`;
   try {
+    // Get random image from Google for preview
     const res2 = await googleImage(text);
     const sfoto = res2.getRandom();
+    
+    // Fetch stickers from API
     const json = await fetch(`https://api.lolhuman.xyz/api/stickerwa?apikey=${lolkeysapi}&query=${text}`);
     const jsons = await json.json();
-    const {stickers} = jsons.result[0];
-    const res = jsons.result.map((v, index) => `${tradutor.texto2[0]} ${1 + index}\n*${tradutor.texto2[1]}* ${v.title}\n*${tradutor.texto2[2]}* ${v.author}\n*${tradutor.texto2[3]}* ${v.url}`).join`\n\n───\n\n`;
-    await conn.sendFile(m.chat, sfoto, 'error.jpg', res, m);
-  } catch {
-    await m.reply('*[❗] 𝙴𝚁𝚁𝙾𝚁, 𝙿𝙾𝚁 𝙵𝙰𝚅𝙾𝚁 𝚅𝚄𝙴𝙻𝚅𝙰 𝙰 𝙸𝙽𝚃𝙴𝚁𝙽𝚃𝙰𝚁𝙻𝙾*');
+    
+    if (!jsons.result || !jsons.result.length) {
+      throw new Error('No stickers found');
+    }
+
+    // Format results
+    const { stickers } = jsons.result[0];
+    const res = jsons.result.map((v, index) => 
+      `🔍 *Result ${1 + index}*\n` +
+      `📛 *Title:* ${v.title}\n` +
+      `👤 *Author:* ${v.author}\n` +
+      `🔗 *URL:* ${v.url}`
+    ).join('\n\n───\n\n');
+
+    // Send image preview with sticker info
+    await conn.sendFile(
+      m.chat, 
+      sfoto, 
+      'sticker-preview.jpg', 
+      `*Sticker Search Results for:* ${text}\n\n${res}`, 
+      m
+    );
+
+  } catch (error) {
+    console.error('Sticker search error:', error);
+    await m.reply('*[❗] ERROR, please try again or use a different search term*');
   }
 };
+
+handler.help = ['stickersearch2 <query>', 'searchsticker2 <query>'];
 handler.command = ['stickersearch2', 'searchsticker2', 'stickerssearch2', 'searchstickers2'];
 export default handler;
