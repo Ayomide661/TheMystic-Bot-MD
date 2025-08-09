@@ -1,86 +1,105 @@
 import fs from 'fs';
+import { delay } from '../lib/utils.js'; // Optional: For animation effect
 
 const handler = async (m, { args, usedPrefix, command }) => {
-  // Debug: Log command trigger
-  console.log("Slot command triggered by:", m.sender);
-
-  const datas = global;
-  const idioma = datas.db?.data?.users[m.sender]?.language || global.defaultLenguaje || 'en';
+  // Load user data and language
+  const user = global.db.data.users[m.sender];
+  if (!user) throw '❌ User data not found!';
+  const lang = user.language || global.defaultLenguaje || 'en';
   
-  // Load language file with error handling
+  // Load translations (with fallback)
   let _translate;
   try {
-    _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
+    _translate = JSON.parse(fs.readFileSync(`./src/languages/${lang}.json`));
   } catch (e) {
-    console.error("Language file error:", e);
-    _translate = { plugins: { game_slot: { 
-      text1: "Usage: slot <amount>", 
-      text2: "Example:", 
-      text3: ["Wait", "before playing again!"], 
-      text4: "Minimum bet: 100 XP", 
-      text5: "Not enough XP!", 
-      text6: "JACKPOT! You won", 
-      text7: "Small win!", 
-      text8: "You lost" 
-    } } };
+    _translate = { 
+      plugins: { 
+        game_slot: {
+          text1: "🎰 *SLOT MACHINE* 🎰",
+          text2: "Usage: *slot <bet amount>*",
+          text3: ["⏳ Wait", "before spinning again!"],
+          text4: "❗ Minimum bet: *100 XP*",
+          text5: "❌ You don't have enough XP!",
+          text6: "🎉 *JACKPOT!* You won",
+          text7: "🔸 *Nice!* You won",
+          text8: "💢 You lost",
+        }
+      }
+    };
   }
-  const tradutor = _translate.plugins.game_slot;
+  const txt = _translate.plugins.game_slot;
 
-  const fa = `${tradutor.text1}\n\n${tradutor.text2}\n*${usedPrefix + command} 100*`;
-  if (!args[0]) throw fa;
-  if (isNaN(args[0])) throw fa;
+  // Check bet validity
+  if (!args[0]) throw `${txt.text1}\n\n${txt.text2}\n*Example:*\n${usedPrefix + command} 500`;
+  if (isNaN(args[0])) throw txt.text2;
+  const bet = parseInt(args[0]);
+  if (bet < 100) throw txt.text4;
+  if (user.exp < bet) throw txt.text5;
 
-  const apuesta = parseInt(args[0]);
-  const users = global.db?.data?.users[m.sender];
-  if (!users) throw "User data not loaded!";
+  // Anti-spam cooldown (10 seconds)
+  const cooldown = 10000;
+  const lastSpin = user.lastslot || 0;
+  if (Date.now() - lastSpin < cooldown) {
+    const remaining = msToTime(cooldown - (Date.now() - lastSpin));
+    throw `${txt.text3[0]} ${remaining} ${txt.text3[1]}`;
+  }
 
-  const time = users.lastslot + 10000;
-  if (new Date() - users.lastslot < 10000) throw `${tradutor.text3[0]} ${msToTime(time - new Date())} ${tradutor.text3[1]}`;
-  if (apuesta < 100) throw tradutor.text4;
-  if (users.exp < apuesta) throw tradutor.text5;
-
-  const emojis = ['🐋', '🐉', '🕊️', '🍎', '🍒', '🍇'];
-  const a = Math.floor(Math.random() * emojis.length);
-  const b = Math.floor(Math.random() * emojis.length);
-  const c = Math.floor(Math.random() * emojis.length);
-
-  const slots = [
-    [emojis[a], emojis[b], emojis[c]],
-    [emojis[(a + 1) % emojis.length], emojis[(b + 2) % emojis.length], emojis[(c + 3) % emojis.length]],
-    [emojis[(a + 2) % emojis.length], emojis[(b + 1) % emojis.length], emojis[(c + 4) % emojis.length]]
+  // Define emojis (some are rarer for bigger wins)
+  const emojis = [
+    '🍒', '🍋', '🍊', '🍇', // Common (lower payout)
+    '🔔', '💎', '7️⃣',       // Rare (higher payout)
   ];
 
-  let end;
-  if (a === b && b === c) {
-    const win = apuesta * 5;
-    end = `${tradutor.text6} +${win} XP 🎉*`;
-    users.exp += win;
-  } else if (a === b || a === c || b === c) {
-    const win = Math.floor(apuesta * 1.5);
-    end = `${tradutor.text7} +${win} XP!*`;
-    users.exp += win;
-  } else {
-    end = `${tradutor.text8} -${apuesta} XP*`;
-    users.exp -= apuesta;
+  // Generate slot results
+  const slots = [];
+  for (let i = 0; i < 3; i++) {
+    slots.push(emojis[Math.floor(Math.random() * emojis.length)]);
   }
 
-  users.lastslot = new Date();
-  await m.reply(
-    `🎰 | *SLOTS*\n────────\n` +
-    `${slots[0].join(' : ')}\n` +
-    `${slots[1].join(' : ')}\n` +
-    `${slots[2].join(' : ')}\n` +
-    `────────\n🎰 | ${end}`
-  ).catch(e => console.error("Reply failed:", e));
+  // Optional: Add spinning animation (uncomment if you want it)
+  /*
+  const spinMsg = await m.reply('🎰 Spinning...');
+  await delay(1500); // 1.5-second delay
+  await spinMsg.delete();
+  */
+
+  // Calculate win/loss
+  let result;
+  if (slots[0] === slots[1] && slots[1] === slots[2]) {
+    // JACKPOT (all 3 match)
+    const win = bet * 5; // 5x payout
+    user.exp += win;
+    result = `${txt.text6} *+${win} XP* 🏆`;
+  } else if (slots[0] === slots[1] || slots[0] === slots[2] || slots[1] === slots[2]) {
+    // Partial win (2 match)
+    const win = Math.floor(bet * 1.5); // 1.5x payout
+    user.exp += win;
+    result = `${txt.text7} *+${win} XP*`;
+  } else {
+    // Loss
+    user.exp -= bet;
+    result = `${txt.text8} *-${bet} XP*`;
+  }
+
+  // Update last spin time
+  user.lastslot = Date.now();
+
+  // Display slot results
+  await m.reply(`
+🎰 *SLOTS* | Bet: *${bet} XP*
+───────────
+${slots.join(' | ')}
+───────────
+${result}
+  `);
 };
 
-handler.help = ['slot <amount>'];
+handler.help = ['slot <bet>'];
 handler.tags = ['game'];
 handler.command = ['slot', 'slots'];
 export default handler;
 
-function msToTime(duration) {
-  const seconds = Math.floor((duration / 1000) % 60);
-  const minutes = Math.floor((duration / (1000 * 60)) % 60);
-  return `${minutes}m ${seconds}s`;
+function msToTime(ms) {
+  const sec = Math.floor(ms / 1000);
+  return `${sec} seconds`;
 }
