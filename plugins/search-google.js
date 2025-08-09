@@ -12,10 +12,10 @@ let handler = async (m, { conn, command, args, usedPrefix }) => {
 
   const fetch = (await import('node-fetch')).default;
   const text = args.join` `;
-  if (!text) return conn.reply(m.chat, `${tradutor.texto1}`, m);
+  if (!text) return conn.reply(m.chat, `${tradutor.text1}`, m);
 const url = 'https://google.com/search?q=' + encodeURIComponent(text);
 google({'query': text}).then(res => {
-let teks = `*${tradutor.texto2} _${text}_*\n\n${url}\n\n`
+let teks = `*${tradutor.text2} _${text}_*\n\n${url}\n\n`
 for (let g of res) {
 teks += `_*${g.title}*_\n_${g.link}_\n_${g.snippet}_\n\n`
 } 
