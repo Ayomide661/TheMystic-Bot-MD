@@ -6,10 +6,10 @@ const handler = async (m, {conn, args, text}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.herramientas_acortar
 
-  if (!text) throw tradutor.texto1;
+  if (!text) throw tradutor.text1;
   const shortUrl1 = await (await fetch(`https://tinyurl.com/api-create.php?url=${args[0]}`)).text();
-  if (!shortUrl1) throw tradutor.texto2;
-  const done = `${tradutor.texto3[0]}\n${text}\n${tradutor.texto3[1]}\n${shortUrl1}`.trim();
+  if (!shortUrl1) throw tradutor.text2;
+  const done = `${tradutor.text3[0]}\n${text}\n${tradutor.text3[1]}\n${shortUrl1}`.trim();
   m.reply(done);
 };
 handler.help = ['tinyurl', 'acortar'].map((v) => v + ' <link>');
