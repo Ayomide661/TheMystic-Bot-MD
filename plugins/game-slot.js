@@ -1,7 +1,3 @@
-/* CREDITOS A https://github.com/FG98F */
-
-
-
 const handler = async (m, {args, usedPrefix, command}) => {
   const datas = global
   const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
@@ -9,21 +5,21 @@ const handler = async (m, {args, usedPrefix, command}) => {
   const tradutor = _translate.plugins.game_slot
 
   const fa = `
-${tradutor.texto1} 
+${tradutor.text1} 
 
-${tradutor.texto2} 
+${tradutor.text2} 
 *${usedPrefix + command} 100*`.trim();
   if (!args[0]) throw fa;
   if (isNaN(args[0])) throw fa;
   const apuesta = parseInt(args[0]);
   const users = global.db.data.users[m.sender];
   const time = users.lastslot + 10000;
-  if (new Date - users.lastslot < 10000) throw `${tradutor.texto3[0]} ${msToTime(time - new Date())} ${tradutor.texto3[1]}`;
-  if (apuesta < 100) throw tradutor.texto4;
+  if (new Date - users.lastslot < 10000) throw `${tradutor.text3[0]} ${msToTime(time - new Date())} ${tradutor.text3[1]}`;
+  if (apuesta < 100) throw tradutor.text4;
   if (users.exp < apuesta) {
-    throw tradutor.texto5;
+    throw tradutor.text5;
   }
-  const emojis = ['🐋', '🐉', '🕊️'];
+  const emojis = ['🐋', '🐉', '🕊️', '🍎', '🍒', '🍇']; // More emojis = harder to win
   let a = Math.floor(Math.random() * emojis.length);
   let b = Math.floor(Math.random() * emojis.length);
   let c = Math.floor(Math.random() * emojis.length);
@@ -47,13 +43,15 @@ ${tradutor.texto2}
   }
   let end;
   if (a == b && b == c) {
-    end = `${tradutor.texto6} +${apuesta + apuesta} 𝚇𝙿*`;
-    users.exp += apuesta;
+    const win = apuesta * 5; // 5x payout for jackpot
+    end = `${tradutor.text6} +${win} XP 🎉*`;
+    users.exp += win;
   } else if (a == b || a == c || b == c) {
-    end = `${tradutor.texto7}`;
-    users.exp += 10;
+    const win = Math.floor(apuesta * 1.5); // 1.5x for two matches
+    end = `${tradutor.text7} +${win} XP!*`;
+    users.exp += win;
   } else {
-    end = `${tradutor.texto8} -${apuesta} 𝚇𝙿*`;
+    end = `${tradutor.text8} -${apuesta} XP*`;
     users.exp -= apuesta;
   }
   users.lastslot = new Date * 1;
@@ -67,21 +65,3 @@ ${x[2]} : ${y[2]} : ${z[2]}
 ────────
 🎰 | ${end}`);
 };
-handler.help = ['slot <apuesta>'];
-handler.tags = ['game'];
-handler.command = ['slot'];
-export default handler;
-
-function msToTime(duration) {
-  const milliseconds = parseInt((duration % 1000) / 100);
-  let seconds = Math.floor((duration / 1000) % 60);
-  let minutes = Math.floor((duration / (1000 * 60)) % 60);
-  let hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
-
-  hours = (hours < 10) ? '0' + hours : hours;
-  minutes = (minutes < 10) ? '0' + minutes : minutes;
-  seconds = (seconds < 10) ? '0' + seconds : seconds;
-
-  return minutes + ' m ' + seconds + ' s ';
-}
-
