@@ -40,10 +40,10 @@ const handler = async (m, { conn }) => {
       console.error(error);
     }
 
-    const texto = `${traductor.texto3[0]}\n\n${traductor.texto3[1]} ${title || traductor.texto2}\n${traductor.texto3[2]} ${subtitle || traductor.texto2}\n${traductor.texto3[4]} ${genres.primary || traductor.texto2}`;
+    const text = `${traductor.text3[0]}\n\n${traductor.text3[1]} ${title || traductor.text2}\n${traductor.text3[2]} ${subtitle || traductor.text2}\n${traductor.text3[4]} ${genres.primary || traductor.text2}`;
     const imagen = await (await fetch(images.coverart)).buffer();
     
-    conn.sendMessage(m.chat, { text: texto.trim(), contextInfo: { forwardingScore: 9999999, isForwarded: true, externalAdReply: { showAdAttribution: true, containsAutoReply: true, renderLargerThumbnail: true, title: apiTitle, mediaType: 1, thumbnail: imagen, thumbnailUrl: imagen, mediaUrl: ytUrl, sourceUrl: ytUrl }}}, { quoted: m });
+    conn.sendMessage(m.chat, { text: text.trim(), contextInfo: { forwardingScore: 9999999, isForwarded: true, externalAdReply: { showAdAttribution: true, containsAutoReply: true, renderLargerThumbnail: true, title: apiTitle, mediaType: 1, thumbnail: imagen, thumbnailUrl: imagen, mediaUrl: ytUrl, sourceUrl: ytUrl }}}, { quoted: m });
 
     try {
       const audiolink = `${global.MyApiRestBaseUrl}/api/v1/ytmp3?url=${encodeURIComponent(ytUrl)}&apikey=${global.MyApiRestApikey}`;
@@ -55,7 +55,7 @@ const handler = async (m, { conn }) => {
 
     fs.unlinkSync(tempPath);
   } else {
-    throw traductor.texto4;
+    throw traductor.text4;
   }
 };
 
