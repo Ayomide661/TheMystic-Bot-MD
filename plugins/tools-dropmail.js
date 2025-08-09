@@ -15,14 +15,14 @@ const handler = async (m, { conn, isOwner, usedPrefix, command, text }) => {
  ];
 
  const [feature, inputs, inputs_, inputs__, inputs___] = text.split(' ');
- if (!lister.includes(feature)) return m.reply(tradutor.texto1[0] + usedPrefix + command + tradutor.texto1[1] + lister.map((v, index) => '  ○ ' + v).join('\n'));
+ if (!lister.includes(feature)) return m.reply(tradutor.text1[0] + usedPrefix + command + tradutor.text1[1] + lister.map((v, index) => '  ○ ' + v).join('\n'));
  if (lister.includes(feature)) {
  if (feature == 'create') {
  try {
  const eml = await random_mail();
  const timeDiff = new Date(eml[2]) - new Date();
  conn.dropmail[id] = [
- await m.reply(tradutor.texto2[0] + eml[0] + '\n\n' + tradutor.texto2[1]  + eml[1] + tradutor.texto2[2]  + msToTime(timeDiff) + tradutor.texto2[3]  + usedPrefix + command + tradutor.texto2[4] ),
+ await m.reply(tradutor.text2[0] + eml[0] + '\n\n' + tradutor.text2[1]  + eml[1] + tradutor.text2[2]  + msToTime(timeDiff) + tradutor.text2[3]  + usedPrefix + command + tradutor.text2[4] ),
   eml[0],
   eml[1],
   eml[2],
@@ -33,22 +33,22 @@ const handler = async (m, { conn, isOwner, usedPrefix, command, text }) => {
 }
 
  if (feature == 'message') {
- if (!conn.dropmail[id]) return m.reply(tradutor.texto3[0] + usedPrefix + command + tradutor.texto3[1]);
+ if (!conn.dropmail[id]) return m.reply(tradutor.text3[0] + usedPrefix + command + tradutor.text3[1]);
  try {
  const eml = await get_mails(conn.dropmail[id][2]);
  const teks = eml[0].map((v, index) => {
- return `*${tradutor.texto4[0]} [ ${index + 1} ]*\n${tradutor.texto4[0]} ${v.fromAddr}\n${tradutor.texto4[0]} ${v.toAddr}\n\n${tradutor.texto4[0]} ${v.text}\n${tradutor.texto4[0]} "${formatSize(v.rawSize)}\n${tradutor.texto4[0]} ${v.headerSubject}\n${tradutor.texto4[0]} ${v.downloadUrl}`.trim();
+ return `*${tradutor.text4[0]} [ ${index + 1} ]*\n${tradutor.text4[0]} ${v.fromAddr}\n${tradutor.text4[0]} ${v.toAddr}\n\n${tradutor.text4[0]} ${v.text}\n${tradutor.text4[0]} "${formatSize(v.rawSize)}\n${tradutor.text4[0]} ${v.headerSubject}\n${tradutor.text4[0]} ${v.downloadUrl}`.trim();
  }).filter((v) => v).join('\n\n________________________\n\n');
- await m.reply(teks || tradutor.texto5[0] + usedPrefix + command + tradutor.texto5[1]);
+ await m.reply(teks || tradutor.text5[0] + usedPrefix + command + tradutor.text5[1]);
  } catch (e) {
  await m.reply(eror);
  }
 }
  if (feature == 'delete') {
- if (!conn.dropmail[id]) return m.reply(tradutor.texto6);
+ if (!conn.dropmail[id]) return m.reply(tradutor.text6);
  try {
   delete conn.dropmail[id];
-  await m.reply(tradutor.texto7);
+  await m.reply(tradutor.text7);
  } catch (e) {
   await m.reply(eror);
    }
