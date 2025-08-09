@@ -3,91 +3,118 @@ import yts from 'yt-search';
 import fs from 'fs';
 
 const handler = async (m, { conn, text, usedPrefix: prefix }) => {
-    const datas = global;
-    const language = datas.db.data.users[m.sender].language || global.defaultLanguage;
-    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${language}.json`));
-    const translator = _translate.plugins.search_yts;
-    const device = await getDevice(m.key.id);
+    try {
+        // Load YouTube-specific language file
+        const langFile = './src/languages/yt-en.json';
+        const traductor = JSON.parse(fs.readFileSync(langFile));
+        
+        // Fallback translations if file is missing properties
+        const translations = {
+            text1: traductor.text1 || "Please enter a search term",
+            text2: traductor.text2 || ["URL", "Duration", "Uploaded", "Views"],
+            searchResults: traductor.searchResults || "Search results",
+            randomVideo: traductor.randomVideo || "Random video",
+            title: traductor.title || "Title",
+            author: traductor.author || "Author",
+            views: traductor.views || "Views",
+            thumbnail: traductor.thumbnail || "Thumbnail",
+            optionsTitle: traductor.optionsTitle || "AVAILABLE OPTIONS",
+            downloadMP3: traductor.downloadMP3 || "Download MP3",
+            downloadMP4: traductor.downloadMP4 || "Download MP4"
+        };
 
-  if (!text) throw `⚠️ *${translator.text1}*`;
+        const device = await getDevice(m.key.id);
 
-  if (device !== 'desktop' || device !== 'web') {      
+        if (!text) throw `⚠️ *${translations.text1}*`;
 
-  const results = await yts(text);
-  if (!results || !results?.videos) return m.reply('> *[❗] Error: Videos not found.*')    
-  const videos = results.videos.slice(0, 20);
-  const randomIndex = Math.floor(Math.random() * videos.length);
-  const randomVideo = videos[randomIndex];
+        const results = await yts(text);
+        if (!results?.videos?.length) return m.reply('> *[❗] Error: No videos found.*');
+        
+        const videos = results.videos.slice(0, 20);
+        const randomIndex = Math.floor(Math.random() * videos.length);
+        const randomVideo = videos[randomIndex];
 
-  var messa = await prepareWAMessageMedia({ image: {url: randomVideo.thumbnail}}, { upload: conn.waUploadToServer })
-  const interactiveMessage = {
-    body: { text: `*—◉ Search results:* ${results.videos.length}\n*—◉ Random video:*\n*-› Title:* ${randomVideo.title}\n*-› Author:* ${randomVideo.author.name}\n*-› Views:* ${randomVideo.views}\n*-› ${translator.text2[0]}:* ${randomVideo.url}\n*-› Thumbnail:* ${randomVideo.thumbnail}`.trim() },
-    footer: { text: `${global.wm}`.trim() },  
-      header: {
-          title: `*< YouTube Search />*\n`,
-          hasMediaAttachment: true,
-          imageMessage: messa.imageMessage,
-      },
-    nativeFlowMessage: {
-      buttons: [
-        {
-          name: 'single_select',
-          buttonParamsJson: JSON.stringify({
-            title: 'AVAILABLE OPTIONS',
-            sections: videos.map((video) => ({
-              title: video.title,
-              rows: [
-                {
-                  header: video.title,
-                  title: video.author.name,
-                  description: 'Download MP3',
-                  id: `${prefix}ytmp3 ${video.url}`
+        // Mobile/Web version
+        if (device !== 'desktop' && device !== 'web') {
+            const messa = await prepareWAMessageMedia(
+                { image: {url: randomVideo.thumbnail}}, 
+                { upload: conn.waUploadToServer }
+            );
+
+            const interactiveMessage = {
+                body: { 
+                    text: `*—◉ ${translations.searchResults}:* ${results.videos.length}\n*—◉ ${translations.randomVideo}:*\n*-› ${translations.title}:* ${randomVideo.title}\n*-› ${translations.author}:* ${randomVideo.author.name}\n*-› ${translations.views}:* ${randomVideo.views}\n*-› ${translations.text2[0]}:* ${randomVideo.url}\n*-› ${translations.thumbnail}:* ${randomVideo.thumbnail}`.trim() 
                 },
-                {
-                  header: video.title,
-                  title: video.author.name,
-                  description: 'Download MP4',
-                  id: `${prefix}ytmp4 ${video.url}`
+                footer: { text: `${global.wm}`.trim() },  
+                header: {
+                    title: `*< YouTube Search />*\n`,
+                    hasMediaAttachment: true,
+                    imageMessage: messa.imageMessage,
+                },
+                nativeFlowMessage: {
+                    buttons: [
+                        {
+                            name: 'single_select',
+                            buttonParamsJson: JSON.stringify({
+                                title: translations.optionsTitle,
+                                sections: videos.map((video) => ({
+                                    title: video.title,
+                                    rows: [
+                                        {
+                                            header: video.title,
+                                            title: video.author.name,
+                                            description: translations.downloadMP3,
+                                            id: `${prefix}ytmp3 ${video.url}`
+                                        },
+                                        {
+                                            header: video.title,
+                                            title: video.author.name,
+                                            description: translations.downloadMP4,
+                                            id: `${prefix}ytmp4 ${video.url}`
+                                        }
+                                    ]
+                                }))
+                            })
+                        }
+                    ],
+                    messageParamsJson: ''
                 }
-              ]
-            }))
-          })
-        }
-      ],
-      messageParamsJson: ''
-    }
-  };        
+            };        
 
-        let msg = generateWAMessageFromContent(m.chat, {
-            viewOnceMessage: {
-                message: {
-                    interactiveMessage,
+            const msg = generateWAMessageFromContent(m.chat, {
+                viewOnceMessage: {
+                    message: {
+                        interactiveMessage,
+                    },
                 },
-            },
-        }, { userJid: conn.user.jid, quoted: m })
-      conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id});
-
-  } else {
-  const datas = global;
-  const language = datas.db.data.users[m.sender].language || global.defaultLanguage;
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${language}.json`));
-  const translator = _translate.plugins.search_yts;      
-  const results = await yts(text);
-  const tes = results.all;
-  const teks = results.all.map((v) => {
-    switch (v.type) {
-      case 'video': return `
+            }, { userJid: conn.user.jid, quoted: m });
+            
+            await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id});
+        } 
+        // Desktop version
+        else {
+            const tes = results.all;
+            const teks = results.all.map((v) => {
+                if (v.type === 'video') {
+                    return `
 ° *_${v.title}_*
-↳ 🫐 *_${translator.text2[0]}_* ${v.url}
-↳ 🕒 *_${translator.text2[1]}_* ${v.timestamp}
-↳ 📥 *_${translator.text2[2]}_* ${v.ago}
-↳ 👁 *_${translator.text2[3]}_* ${v.views}`;
+↳ 🫐 *_${translations.text2[0]}_* ${v.url}
+↳ 🕒 *_${translations.text2[1]}_* ${v.timestamp}
+↳ 📥 *_${translations.text2[2]}_* ${v.ago}
+↳ 👁 *_${translations.text2[3]}_* ${v.views}`;
+                }
+                return null;
+            }).filter(Boolean).join('\n\n◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦\n\n');
+            
+            await conn.sendFile(m.chat, tes[0].thumbnail, 'error.jpg', teks.trim(), m);
+        }
+    } catch (error) {
+        console.error('Error in ytsearch handler:', error);
+        m.reply('> *[❗] An error occurred while processing your request.*');
     }
-  }).filter((v) => v).join('\n\n◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦◦\n\n');
-  conn.sendFile(m.chat, tes[0].thumbnail, 'error.jpg', teks.trim(), m);      
-  }    
 };
+
 handler.help = ['ytsearch <text>'];
 handler.tags = ['search'];
-handler.command = /^(ytsearch|yts|searchyt|ytsearch|videosearch|audiosearch)$/i;
+handler.command = /^(ytsearch|yts|searchyt|videosearch|audiosearch)$/i;
 export default handler;
