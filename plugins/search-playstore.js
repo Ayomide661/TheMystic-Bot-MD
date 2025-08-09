@@ -6,9 +6,9 @@ let handler = async (m, { conn, text }) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.buscador_playstore
   
-  if (!text) throw `*${tradutor.texto1}*`;
+  if (!text) throw `*${tradutor.text1}*`;
   let res = await gplay.search({ term: text });
-  if (!res.length) throw `*${tradutor.texto2}*`;
+  if (!res.length) throw `*${tradutor.text2}*`;
   let opt = {
     contextInfo: {
       externalAdReply: {
@@ -22,11 +22,11 @@ let handler = async (m, { conn, text }) => {
   await console.log(res);
   res = res.map(
     (v) =>
-      `${tradutor.texto3[0]} ${v.title}
-      ${tradutor.texto3[1]} ${v.developer}
-      ${tradutor.texto3[2]} ${v.priceText}
-      ${tradutor.texto3[3]} ${v.scoreText}
-      ${tradutor.texto3[4]}${v.url}`
+      `${tradutor.text3[0]} ${v.title}
+      ${tradutor.text3[1]} ${v.developer}
+      ${tradutor.text3[2]} ${v.priceText}
+      ${tradutor.text3[3]} ${v.scoreText}
+      ${tradutor.text3[4]}${v.url}`
   ).join`\n\n`;
   m.reply(res, null, opt);
 };
