@@ -46,28 +46,67 @@ const handler = async (m, { args, usedPrefix, command }) => {
   }
 
   // Define emojis (common + rare)
-  const emojis = ['🍒', '🍋', '🍊', '🍇', '🔔', '💎', '7️⃣'];
+  const emojis = ['🍒', '🍋', '🍊', '🍇', '🔔', '💎', '7️⃣', '⚡', '👑', '🩸', '🫆'];
 
-  // Generate slots
-  const slots = [];
-  for (let i = 0; i < 3; i++) {
-    slots.push(emojis[Math.floor(Math.random() * emojis.length)]);
+  // Generate initial spinning message
+  let spinningMsg = await m.reply(`
+🎰 *SLOTS* | Bet: *${bet} XP*
+───────────
+🌀 | 🌀 | 🌀
+🌀 | 🌀 | 🌀
+🌀 | 🌀 | 🌀
+───────────
+*SPINNING...*`);
+
+  // Function to generate random emoji
+  const getRandomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
+
+  // Spinning animation
+  for (let i = 0; i < 5; i++) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const tempSlots = [
+      [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
+      [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
+      [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()]
+    ];
+    await spinningMsg.edit(`
+🎰 *SLOTS* | Bet: *${bet} XP*
+───────────
+${tempSlots[0].join(' | ')}
+${tempSlots[1].join(' | ')}
+${tempSlots[2].join(' | ')}
+───────────
+*SPINNING...*`);
   }
 
-  // Calculate win/loss
-  let result;
-  if (slots[0] === slots[1] && slots[1] === slots[2]) {
-    // JACKPOT (5x)
-    const win = bet * 5;
-    user.exp += win;
-    result = `${txt.text6} *+${win} XP* 🏆`;
-  } else if (slots[0] === slots[1] || slots[0] === slots[2] || slots[1] === slots[2]) {
-    // Partial win (1.5x)
-    const win = Math.floor(bet * 1.5);
-    user.exp += win;
-    result = `${txt.text7} *+${win} XP*`;
+  // Generate final slots
+  const slots = [
+    [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
+    [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
+    [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()]
+  ];
+
+  // Check for wins (horizontal lines only)
+  let winAmount = 0;
+  let result = txt.text8; // Default loss message
+
+  // Check each horizontal line
+  for (let i = 0; i < 3; i++) {
+    if (slots[i][0] === slots[i][1] && slots[i][1] === slots[i][2]) {
+      // JACKPOT (5x)
+      winAmount += bet * 5;
+      result = `${txt.text6} *+${bet * 5} XP* 🏆`;
+    } else if (slots[i][0] === slots[i][1] || slots[i][0] === slots[i][2] || slots[i][1] === slots[i][2]) {
+      // Partial win (1.5x)
+      winAmount += Math.floor(bet * 1.5);
+      result = `${txt.text7} *+${Math.floor(bet * 1.5)} XP*`;
+    }
+  }
+
+  // Update user XP
+  if (winAmount > 0) {
+    user.exp += winAmount;
   } else {
-    // Loss
     user.exp -= bet;
     result = `${txt.text8} *-${bet} XP*`;
   }
@@ -75,14 +114,16 @@ const handler = async (m, { args, usedPrefix, command }) => {
   // Update last spin time
   user.lastslot = Date.now();
 
-  // Display result
-  await m.reply(`
+  // Display final result
+  await spinningMsg.edit(`
 🎰 *SLOTS* | Bet: *${bet} XP*
 ───────────
-${slots.join(' | ')}
+${slots[0].join(' | ')}
+${slots[1].join(' | ')}
+${slots[2].join(' | ')}
 ───────────
 ${result}
-  `);
+${winAmount > 0 ? `*TOTAL WIN: +${winAmount} XP*` : ''}`);
 };
 
 handler.help = ['slot <bet>'];
