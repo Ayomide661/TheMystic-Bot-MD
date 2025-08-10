@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-const handler = async (m, { args, usedPrefix, command }) => {
+const handler = async (m, { args, usedPrefix, command, conn }) => {
   // Load user data
   const user = global.db.data.users[m.sender];
   if (!user) throw '❌ User data not found!';
@@ -36,7 +36,7 @@ const handler = async (m, { args, usedPrefix, command }) => {
   if (user.exp < bet) throw txt.text5;
 
   // Cooldown check (10 seconds)
-  const cooldown = 10000; // 10 seconds
+  const cooldown = 10000;
   const lastSpin = user.lastslot || 0;
   const remainingTime = cooldown - (Date.now() - lastSpin);
 
@@ -45,59 +45,57 @@ const handler = async (m, { args, usedPrefix, command }) => {
     throw `${txt.text3[0]} *${remainingSec} seconds* ${txt.text3[1]}`;
   }
 
-  // Define emojis (common + rare)
+  // Define emojis
   const emojis = ['🍒', '🍋', '🍊', '🍇', '🔔', '💎', '7️⃣', '⚡', '👑', '🩸', '🫆'];
 
-  // Generate initial spinning message
-  let spinningMsg = await m.reply(`
-🎰 *SLOTS* | Bet: *${bet} XP*
-───────────
-🌀 | 🌀 | 🌀
-🌀 | 🌀 | 🌀
-🌀 | 🌀 | 🌀
-───────────
-*SPINNING...*`);
+  // Function to generate random slot lines
+  const generateSlots = () => {
+    return [
+      [emojis[Math.floor(Math.random() * emojis.length)], 
+      emojis[Math.floor(Math.random() * emojis.length)], 
+      emojis[Math.floor(Math.random() * emojis.length)]],
+      [emojis[Math.floor(Math.random() * emojis.length)], 
+      emojis[Math.floor(Math.random() * emojis.length)], 
+      emojis[Math.floor(Math.random() * emojis.length)]],
+      [emojis[Math.floor(Math.random() * emojis.length)], 
+      emojis[Math.floor(Math.random() * emojis.length)], 
+      emojis[Math.floor(Math.random() * emojis.length)]]
+    ];
+  };
 
-  // Function to generate random emoji
-  const getRandomEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
+  // Send initial message
+  let slotsMsg = await conn.sendMessage(m.chat, {
+    text: `🎰 *SLOTS* | Bet: *${bet} XP*\n───────────\n🌀 | 🌀 | 🌀\n🌀 | 🌀 | 🌀\n🌀 | 🌀 | 🌀\n───────────\n*SPINNING...*`
+  }, { quoted: m });
 
   // Spinning animation
   for (let i = 0; i < 5; i++) {
     await new Promise(resolve => setTimeout(resolve, 500));
-    const tempSlots = [
-      [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
-      [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
-      [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()]
-    ];
-    await spinningMsg.edit(`
-🎰 *SLOTS* | Bet: *${bet} XP*
-───────────
-${tempSlots[0].join(' | ')}
-${tempSlots[1].join(' | ')}
-${tempSlots[2].join(' | ')}
-───────────
-*SPINNING...*`);
+    const tempSlots = generateSlots();
+    await conn.relayMessage(m.chat, {
+      protocolMessage: {
+        key: slotsMsg.key,
+        type: 14,
+        editedMessage: {
+          conversation: `🎰 *SLOTS* | Bet: *${bet} XP*\n───────────\n${tempSlots[0].join(' | ')}\n${tempSlots[1].join(' | ')}\n${tempSlots[2].join(' | ')}\n───────────\n*SPINNING...*`
+        }
+      }
+    });
   }
 
   // Generate final slots
-  const slots = [
-    [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
-    [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()],
-    [getRandomEmoji(), getRandomEmoji(), getRandomEmoji()]
-  ];
+  const finalSlots = generateSlots();
 
-  // Check for wins (horizontal lines only)
+  // Check for wins
   let winAmount = 0;
-  let result = txt.text8; // Default loss message
+  let result = txt.text8;
 
   // Check each horizontal line
   for (let i = 0; i < 3; i++) {
-    if (slots[i][0] === slots[i][1] && slots[i][1] === slots[i][2]) {
-      // JACKPOT (5x)
+    if (finalSlots[i][0] === finalSlots[i][1] && finalSlots[i][1] === finalSlots[i][2]) {
       winAmount += bet * 5;
       result = `${txt.text6} *+${bet * 5} XP* 🏆`;
-    } else if (slots[i][0] === slots[i][1] || slots[i][0] === slots[i][2] || slots[i][1] === slots[i][2]) {
-      // Partial win (1.5x)
+    } else if (finalSlots[i][0] === finalSlots[i][1] || finalSlots[i][0] === finalSlots[i][2] || finalSlots[i][1] === finalSlots[i][2]) {
       winAmount += Math.floor(bet * 1.5);
       result = `${txt.text7} *+${Math.floor(bet * 1.5)} XP*`;
     }
@@ -114,16 +112,16 @@ ${tempSlots[2].join(' | ')}
   // Update last spin time
   user.lastslot = Date.now();
 
-  // Display final result
-  await spinningMsg.edit(`
-🎰 *SLOTS* | Bet: *${bet} XP*
-───────────
-${slots[0].join(' | ')}
-${slots[1].join(' | ')}
-${slots[2].join(' | ')}
-───────────
-${result}
-${winAmount > 0 ? `*TOTAL WIN: +${winAmount} XP*` : ''}`);
+  // Send final result
+  await conn.relayMessage(m.chat, {
+    protocolMessage: {
+      key: slotsMsg.key,
+      type: 14,
+      editedMessage: {
+        conversation: `🎰 *SLOTS* | Bet: *${bet} XP*\n───────────\n${finalSlots[0].join(' | ')}\n${finalSlots[1].join(' | ')}\n${finalSlots[2].join(' | ')}\n───────────\n${result}\n${winAmount > 0 ? `*TOTAL WIN: +${winAmount} XP*` : ''}`
+      }
+    }
+  });
 };
 
 handler.help = ['slot <bet>'];
