@@ -9,7 +9,7 @@ const handler = async (m, { conn, usedPrefix }) => {
   const totalusr = Object.keys(global.db.data.users).length;
   const chats = Object.entries(conn.chats).filter(([id, data]) => id && data.isChats);
   const groups = chats.filter(([id]) => id.endsWith("@g.us"));
-  const { restrict, anticall, antiprivate, modejadibot } = global.db.data.settings[conn.user.jid] || {};
+  const { restrict, anticall, antiprivate, jadibotmode } = global.db.data.settings[conn.user.jid] || {};
   const { autoread, gconly, pconly, self } = global.opts || {};
 
   const neww = performance.now(); // Stop measuring response time here
