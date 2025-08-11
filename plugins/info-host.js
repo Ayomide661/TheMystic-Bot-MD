@@ -8,35 +8,35 @@ const handler = async (m, {conn, usedPrefix}) => {
 
   const doc = ['pdf', 'zip', 'vnd.openxmlformats-officedocument.presentationml.presentation', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'vnd.openxmlformats-officedocument.wordprocessingml.document'];
   const document = doc[Math.floor(Math.random() * doc.length)];
-  const text = `${tradutor.texto1[0]}
+  const text = `${tradutor.text1[0]}
   
-${tradutor.texto1[1]}
+${tradutor.text1[1]}
 
-${tradutor.texto1[2]}
+${tradutor.text1[2]}
 
-${tradutor.texto1[3]}
-${tradutor.texto1[4]}
+${tradutor.text1[3]}
+${tradutor.text1[4]}
 
-${tradutor.texto1[5]}
-${tradutor.texto1[6]}
+${tradutor.text1[5]}
+${tradutor.text1[6]}
 
-${tradutor.texto1[7]}
-${tradutor.texto1[8]}
+${tradutor.text1[7]}
+${tradutor.text1[8]}
 
-${tradutor.texto1[9]}
-${tradutor.texto1[10]}
+${tradutor.text1[9]}
+${tradutor.text1[10]}
 
-${tradutor.texto1[11]}
-${tradutor.texto1[12]}
+${tradutor.text1[11]}
+${tradutor.text1[12]}
 
-${tradutor.texto1[13]}
-${tradutor.texto1[14]}
+${tradutor.text1[13]}
+${tradutor.text1[14]}
 
-${tradutor.texto1[15]}
-${tradutor.texto1[16]}
+${tradutor.text1[15]}
+${tradutor.text1[16]}
 `.trim();
   const buttonMessage= {
-    'document': {url: `https://github.com/BrunoSobrino/TheMystic-Bot-MD`},
+    'document': {url: `https://github.com/Ayomide661/TheMystic-Bot-MD`},
     'mimetype': `application/${document}`,
     'fileName': `「  𝑯𝒆𝒍𝒍𝒐 𝑾𝒐𝒓𝒍𝒅 」`,
     'fileLength': 99999999999999,
@@ -45,13 +45,13 @@ ${tradutor.texto1[16]}
       'forwardingScore': 200,
       'isForwarded': true,
       'externalAdReply': {
-        'mediaUrl': 'https://github.com/BrunoSobrino/TheMystic-Bot-MD',
+        'mediaUrl': 'https://github.com/Ayomide661/TheMystic-Bot-MD',
         'mediaType': 2,
         'previewType': 'pdf',
-        'title': tradutor.texto2,
+        'title': tradutor.text2,
         'body': wm,
         'thumbnail': imagen1,
-        'sourceUrl': 'https://whatsapp.com/channel/0029VaFVSkRCMY0KFmCMDX2q'}},
+        'sourceUrl': 'https://chat.whatsapp.com/CwG9Gp6dF2H6bWgld00lF1?mode=ac_t'}},
     'caption': text,
     'footer': wm,
     // 'buttons':[
