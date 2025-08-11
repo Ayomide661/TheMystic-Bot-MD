@@ -7,9 +7,9 @@ const handler = async (m, {conn, participants, command, usedPrefix, text}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.grupos_eliminar
 
-  if (!global.db.data.settings[conn.user.jid].restrict) throw `${tradutor.texto1[0]} (*_restrict_*), ${tradutor.texto1[1]}`;
+  if (!global.db.data.settings[conn.user.jid].restrict) throw `${tradutor.text1[0]} (*_restrict_*), ${tradutor.text1[1]}`;
   
-  const kicktext = `${tradutor.texto2} _${usedPrefix + command} @${global.suittag}_`;
+  const kicktext = `${tradutor.text2} _${usedPrefix + command} @${global.suittag}_`;
   
   const getMentionedUserAndReason = async () => {
     let mentionedJid = null;
@@ -54,7 +54,7 @@ const handler = async (m, {conn, participants, command, usedPrefix, text}) => {
   
   const { user: mentionedUser, reason: kickReason } = await getMentionedUserAndReason();
   if (!mentionedUser) return m.reply(kicktext, m.chat, {mentions: conn.parseMention(kicktext)});
-  if (conn.user.jid.includes(mentionedUser)) return m.reply(tradutor.texto4);
+  if (conn.user.jid.includes(mentionedUser)) return m.reply(tradutor.text4);
   
   if (kickReason) {
     const userTag = mentionedUser.split('@')[0];
@@ -71,9 +71,9 @@ const handler = async (m, {conn, participants, command, usedPrefix, text}) => {
   try {
     const response = await conn.groupParticipantsUpdate(m.chat, [mentionedUser], 'remove');
     const userTag = mentionedUser.split('@')[0];
-    const exitoso1 = `${tradutor.texto5[0]} @${userTag} ${tradutor.texto5[1]}`;
-    const error1 = `${tradutor.texto6[0]} @${userTag} ${tradutor.texto6[1]}`;
-    const error2 = `${tradutor.texto7[0]} @${userTag} ${tradutor.texto7[1]}`;
+    const exitoso1 = `${tradutor.text5[0]} @${userTag} ${tradutor.text5[1]}`;
+    const error1 = `${tradutor.text6[0]} @${userTag} ${tradutor.text6[1]}`;
+    const error2 = `${tradutor.text7[0]} @${userTag} ${tradutor.text7[1]}`;
     
     if (response[0]?.status === '200') {
       m.reply(exitoso1, m.chat, {mentions: conn.parseMention(exitoso1)});
@@ -82,10 +82,10 @@ const handler = async (m, {conn, participants, command, usedPrefix, text}) => {
     } else if (response[0]?.status === '404') {
       m.reply(error2, m.chat, {mentions: conn.parseMention(error2)});
     } else {
-      conn.sendMessage(m.chat, {text: `${tradutor.texto8}`, mentions: [m.sender], contextInfo: {forwardingScore: 999, isForwarded: true}}, {quoted: m});
+      conn.sendMessage(m.chat, {text: `${tradutor.text8}`, mentions: [m.sender], contextInfo: {forwardingScore: 999, isForwarded: true}}, {quoted: m});
     }
   } catch (error) {
-    conn.sendMessage(m.chat, {text: `${tradutor.texto8}`, mentions: [m.sender], contextInfo: {forwardingScore: 999, isForwarded: true}}, {quoted: m});
+    conn.sendMessage(m.chat, {text: `${tradutor.text8}`, mentions: [m.sender], contextInfo: {forwardingScore: 999, isForwarded: true}}, {quoted: m});
   }
 };
 
