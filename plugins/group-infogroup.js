@@ -9,40 +9,40 @@ const handler = async (m, {conn, participants, groupMetadata}) => {
   const groupAdmins = participants.filter((p) => p.admin);
   const listAdmin = groupAdmins.map((v, i) => `${i + 1}. @${v.id.split('@')[0]}`).join('\n');
   const owner = groupMetadata.ownerJid || groupMetadata.owner
-  const text = `${tradutor.texto1[0]}\n
-  ${tradutor.texto1[1]}* 
+  const text = `${tradutor.text1[0]}\n
+  ${tradutor.text1[1]}* 
 ${groupMetadata.id}
 
-${tradutor.texto1[2]}
+${tradutor.text1[2]}
 ${groupMetadata.subject}
 
-${tradutor.texto1[3]} 
-${groupMetadata.desc?.toString() || tradutor.texto1[22]}
+${tradutor.text1[3]} 
+${groupMetadata.desc?.toString() || tradutor.text1[22]}
 
 
-${tradutor.texto1[4]} 
-${participants.length} ${tradutor.texto1[5]} 
+${tradutor.text1[4]} 
+${participants.length} ${tradutor.text1[5]} 
 
-${tradutor.texto1[6]}  
+${tradutor.text1[6]}  
 @${owner.split('@')[0]}
 
-${tradutor.texto1[7]}  
+${tradutor.text1[7]}  
 ${listAdmin}
 
-${tradutor.texto1[8]} 
-${tradutor.texto1[9]}  ${welcome ? '✅' : '❌'}
-${tradutor.texto1[10]}  ${detect ? '✅' : '❌'} 
-${tradutor.texto1[11]}  ${detect2 ? '✅' : '❌'} 
-${tradutor.texto1[12]}  ${antiLink ? '✅' : '❌'} 
-${tradutor.texto1[13]}  ${antiLink2 ? '✅' : '❌'} 
-${tradutor.texto1[14]}  ${modohorny ? '✅' : '❌'} 
-${tradutor.texto1[15]}  ${autosticker ? '✅' : '❌'} 
-${tradutor.texto1[16]}  ${audios ? '✅' : '❌'} 
-${tradutor.texto1[17]}  ${antiviewonce ? '✅' : '❌'} 
-${tradutor.texto1[18]}  ${antidelete ? '✅' : '❌'} 
-${tradutor.texto1[19]}  ${antiToxic ? '✅' : '❌'} 
-${tradutor.texto1[20]}  ${antiTraba ? '✅' : '❌'} 
-${tradutor.texto1[21]}  ${modoadmin ? '✅' : '❌'} 
+${tradutor.text1[8]} 
+${tradutor.text1[9]}  ${welcome ? '✅' : '❌'}
+${tradutor.text1[10]}  ${detect ? '✅' : '❌'} 
+${tradutor.text1[11]}  ${detect2 ? '✅' : '❌'} 
+${tradutor.text1[12]}  ${antiLink ? '✅' : '❌'} 
+${tradutor.text1[13]}  ${antiLink2 ? '✅' : '❌'} 
+${tradutor.text1[14]}  ${modohorny ? '✅' : '❌'} 
+${tradutor.text1[15]}  ${autosticker ? '✅' : '❌'} 
+${tradutor.text1[16]}  ${audios ? '✅' : '❌'} 
+${tradutor.text1[17]}  ${antiviewonce ? '✅' : '❌'} 
+${tradutor.text1[18]}  ${antidelete ? '✅' : '❌'} 
+${tradutor.text1[19]}  ${antiToxic ? '✅' : '❌'} 
+${tradutor.text1[20]}  ${antiTraba ? '✅' : '❌'} 
+${tradutor.text1[21]}  ${modoadmin ? '✅' : '❌'} 
 `.trim();
   conn.sendFile(m.chat, pp, 'error.jpg', text, m, false, {mentions: [...groupAdmins.map((v) => v.id), owner]});
 };
