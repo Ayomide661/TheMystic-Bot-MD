@@ -27,7 +27,7 @@ global.mods = MODS_NUMBERS.map(number => number.trim());
 
 // Rest of your configuration remains the same
 global.BASE_API_DELIRIUS = "https://delirius-apiofc.vercel.app";
-global.packname = 'Sticker';
+global.packname = '· • • ━✦︵‿୨❄️୧‿︵✦ ━ • • ·';
 global.author = 'Ayphish';
 global.wm = 'The Mystic - Bot';
 global.titulowm = 'Mystic Bot';
