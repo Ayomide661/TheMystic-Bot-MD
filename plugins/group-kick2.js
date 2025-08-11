@@ -4,8 +4,8 @@ const handler = async (m, {conn, participants, usedPrefix, command}) => {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.gc_kick2
 
-  if (!global.db.data.settings[conn.user.jid].restrict) throw`${tradutor.texto1[0]} (𝚎𝚗𝚊𝚋𝚕𝚎 𝚛𝚎𝚜𝚝𝚛𝚒𝚌𝚝 / 𝚍𝚒𝚜𝚊𝚋𝚕𝚎 𝚛𝚎𝚜𝚝𝚛𝚒𝚌𝚝) ${tradutor.texto1[1]}`;
-  const kicktext = `${tradutor.texto2} \n*${usedPrefix + command} @${global.suittag}*`;
+  if (!global.db.data.settings[conn.user.jid].restrict) throw`${tradutor.text1[0]} (𝚎𝚗𝚊𝚋𝚕𝚎 𝚛𝚎𝚜𝚝𝚛𝚒𝚌𝚝 / 𝚍𝚒𝚜𝚊𝚋𝚕𝚎 𝚛𝚎𝚜𝚝𝚛𝚒𝚌𝚝) ${tradutor.text1[1]}`;
+  const kicktext = `${tradutor.text2} \n*${usedPrefix + command} @${global.suittag}*`;
   const testi = m.mentionedJid[0]
 
   console.log(testi)
