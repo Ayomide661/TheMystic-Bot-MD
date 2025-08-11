@@ -1,19 +1,20 @@
 import { performance } from "perf_hooks";
 
 const handler = async (m, { conn, usedPrefix }) => {
+  const old = performance.now(); // Start measuring response time here
+
   const _uptime = process.uptime() * 1000;
   const uptime = clockString(_uptime);
   const totalusrReg = Object.values(global.db.data.users).filter((user) => user.registered == true).length;
   const totalusr = Object.keys(global.db.data.users).length;
   const chats = Object.entries(conn.chats).filter(([id, data]) => id && data.isChats);
   const groups = chats.filter(([id]) => id.endsWith("@g.us"));
-  const { restrict, antiCall, antiprivado, modejadibot } = global.db.data.settings[conn.user.jid] || {};
+  const { restrict, anticall, antiprivate, modejadibot } = global.db.data.settings[conn.user.jid] || {};
   const { autoread, gconly, pconly, self } = global.opts || {};
-  
-  const old = performance.now();
-  const neww = performance.now();
+
+  const neww = performance.now(); // Stop measuring response time here
   const rtime = (neww - old).toFixed(7);
-  
+
   const info = `🤖 *BOT STATUS* 🤖
 
 👤 *Owner:* Ayomide661
@@ -36,8 +37,8 @@ const handler = async (m, { conn, usedPrefix }) => {
 🚫 *Restrict Mode:* ${restrict ? "✅ on" : "❌ off"}
 💻 *PC Only:* ${pconly ? "✅ on" : "❌ off"}
 👥 *GC Only:* ${gconly ? "✅ on" : "❌ off"}
-🚷 *Anti Private:* ${antiprivado ? "✅ on" : "❌ off"}
-📵 *Anti Call:* ${antiCall ? "✅ on" : "❌ off"}
+🚷 *Anti Private:* ${antiprivate ? "✅ on" : "❌ off"}
+📵 *Anti Call:* ${anticall ? "✅ on" : "❌ off"}
 🤖 *Bot Mode:* ${modejadibot ? "✅ on" : "❌ off"}`;
 
   await conn.sendMessage(m.chat, { text: info }, { quoted: m });
