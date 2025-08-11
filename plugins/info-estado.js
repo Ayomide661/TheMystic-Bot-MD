@@ -39,7 +39,7 @@ const handler = async (m, { conn, usedPrefix }) => {
 👥 *GC Only:* ${gconly ? "✅ on" : "❌ off"}
 🚷 *Anti Private:* ${antiprivate ? "✅ on" : "❌ off"}
 📵 *Anti Call:* ${anticall ? "✅ on" : "❌ off"}
-🤖 *Bot Mode:* ${modejadibot ? "✅ on" : "❌ off"}`;
+🤖 *Bot Mode:* ${jadibotmode ? "✅ on" : "❌ off"}`;
 
   await conn.sendMessage(m.chat, { text: info }, { quoted: m });
 };
