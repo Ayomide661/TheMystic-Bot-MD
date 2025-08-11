@@ -1,4 +1,3 @@
-
 const handler = async (m, {isPrems, conn}) => {
   const datas = global
   const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
@@ -6,7 +5,7 @@ const handler = async (m, {isPrems, conn}) => {
   const tradutor = _translate.plugins.rpg_cofre
 
   const time = global.db.data.users[m.sender].lastcofre + 86400000; // 36000000 10 Horas //86400000 24 Horas
-  if (new Date - global.db.data.users[m.sender].lastcofre < 86400000) throw `${tradutor.texto1[0]} *${msToTime(time - new Date())}* ${tradutor.texto1[1]}`;
+  if (new Date - global.db.data.users[m.sender].lastcofre < 86400000) throw `${tradutor.text1[0]} *${msToTime(time - new Date())}* ${tradutor.text1[1]}`;
 
   const img = 'https://img.freepik.com/vector-gratis/cofre-monedas-oro-piedras-preciosas-cristales-trofeo_107791-7769.jpg?w=2000';
   const dia = Math.floor(Math.random() * 30);
@@ -19,15 +18,15 @@ const handler = async (m, {isPrems, conn}) => {
   global.db.data.users[m.sender].joincount += tok;
   global.db.data.users[m.sender].exp += expp;
 
-  const texto = `
-${tradutor.texto2[0]}
-${tradutor.texto2[1]}
-${tradutor.texto2[2]}
-║➢ *${dia} ${tradutor.texto2[3]}
-║➢ *${tok} ${tradutor.texto2[4]}
-║➢ *${mystic} ${tradutor.texto2[5]}
-║➢ *${expp} ${tradutor.texto2[6]}
-${tradutor.texto2[7]}`;
+  const text = `
+${tradutor.text2[0]}
+${tradutor.text2[1]}
+${tradutor.text2[2]}
+║➢ *${dia} ${tradutor.text2[3]}
+║➢ *${tok} ${tradutor.text2[4]}
+║➢ *${mystic} ${tradutor.text2[5]}
+║➢ *${expp} ${tradutor.text2[6]}
+${tradutor.text2[7]}`;
 
   const fkontak = {
     'key': {
@@ -44,8 +43,8 @@ ${tradutor.texto2[7]}`;
     'participant': '0@s.whatsapp.net',
   };
 
-  await conn.sendFile(m.chat, img, 'mystic.jpg', texto, fkontak);
-  // await conn.sendButton(m.chat, texto, wm, img, [['🔰 𝙼𝙴𝙽𝚄', '/menu'] ], fkontak, m)
+  await conn.sendFile(m.chat, img, 'mystic.jpg', text, fkontak);
+  // await conn.sendButton(m.chat, text, wm, img, [['🔰 𝙼𝙴𝙽𝚄', '/menu'] ], fkontak, m)
   global.db.data.users[m.sender].lastcofre = new Date * 1;
 };
 handler.help = ['daily'];
