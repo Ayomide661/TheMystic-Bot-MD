@@ -1,109 +1,238 @@
-import { WAMessageStubType } from '@whiskeysockets/baileys'
+import mysql from 'mysql2/promise';
 
-const handler = async (m, { conn, args, isAdmin, isOwner }) => {
-    if (!isAdmin && !isOwner) {
-        return m.reply('❌ This command requires admin privileges')
-    }
+// MySQL Database Configuration
+const dbConfig = {
+    host: 'mysql.db.bot-hosting.net',
+    port: 3306,
+    user: 'u459053_sLEdgAjDcz',
+    password: 'SvDJY@4bc7c3!U@Uh5DtJjlQ',
+    database: 's459053_Mystic'
+};
 
-    // Initialize antibot list if it doesn't exist
-    if (!global.antibot) global.antibot = {}
-    if (!global.antibot[m.chat]) global.antibot[m.chat] = []
+// Create database connection pool
+const pool = mysql.createPool({
+    ...dbConfig,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 
-    if (!args[0]) {
-        // Show current monitored users
-        const list = global.antibot[m.chat].length 
-            ? global.antibot[m.chat].map(jid => `• @${jid.split('@')[0]}`).join('\n')
-            : 'No users being monitored'
-        return m.reply(
-            `🚫 *AntiBot Monitoring*\n\n` +
-            `Current monitored users:\n${list}\n\n` +
-            `Usage:\n` +
-            `• Add: !antibot add @user\n` +
-            `• Remove: !antibot remove @user\n` +
-            `• Clear all: !antibot clear`,
-            null, 
-            { mentions: global.antibot[m.chat] }
-        )
-    }
-
-    const action = args[0].toLowerCase()
-    const targets = m.mentionedJid.filter(jid => jid !== conn.user.jid)
-
-    switch (action) {
-        case 'add':
-            if (!targets.length) return m.reply('Please mention users to add')
-            global.antibot[m.chat] = [...new Set([...global.antibot[m.chat], ...targets])]
-            m.reply(`✅ Added ${targets.length} user(s) to monitoring list`)
-            break
-
-        case 'remove':
-            if (!targets.length) return m.reply('Please mention users to remove')
-            global.antibot[m.chat] = global.antibot[m.chat].filter(jid => !targets.includes(jid))
-            m.reply(`✅ Removed ${targets.length} user(s) from monitoring list`)
-            break
-
-        case 'clear':
-            global.antibot[m.chat] = []
-            m.reply('✅ Cleared all monitored users')
-            break
-
-        default:
-            m.reply('Invalid command. Use !antibot help for usage')
-    }
-}
-
-// Message event handler
-export async function all(m) {
-    // Skip if not a group or antibot not initialized
-    if (!m.isGroup || !global.antibot?.[m.chat]) return
-    
-    // Skip if message is from admin or not in monitored list
-    const isAdmin = await (async () => {
-        try {
-            const metadata = await this.groupMetadata(m.chat)
-            return metadata.participants.find(p => p.id === m.sender)?.admin
-        } catch {
-            return false
-        }
-    })()
-    
-    if (isAdmin || !global.antibot[m.chat].includes(m.sender)) return
-    
-    // Skip important system messages
-    if ([
-        WAMessageStubType.GROUP_PARTICIPANT_LEAVE,
-        WAMessageStubType.GROUP_PARTICIPANT_REMOVE,
-        WAMessageStubType.GROUP_CHANGE_ANNOUNCE,
-        WAMessageStubType.GROUP_CHANGE_SUBJECT,
-        WAMessageStubType.GROUP_CHANGE_ICON
-    ].includes(m.messageStubType)) return
-
+// Initialize database tables
+async function initDatabase() {
+    let conn;
     try {
-        // Delete the message
-        await this.sendMessage(m.chat, {
-            delete: {
-                id: m.key.id,
-                remoteJid: m.chat,
-                fromMe: false,
-                participant: m.sender
-            }
-        })
-        
-        // Optional: Notify about deletion
-        await this.sendMessage(m.chat, {
-            text: `🚫 Message from @${m.sender.split('@')[0]} was automatically deleted`,
-            mentions: [m.sender]
-        }, { quoted: m })
+        conn = await pool.getConnection();
+        await conn.query(`
+            CREATE TABLE IF NOT EXISTS restricted_users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                group_id VARCHAR(255) NOT NULL,
+                user_id VARCHAR(255) NOT NULL,
+                restricted_by VARCHAR(255) NOT NULL,
+                restricted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_restriction (group_id, user_id)
+            )
+        `);
+        console.log('Database tables initialized');
     } catch (error) {
-        console.error('AntiBot deletion error:', error)
+        console.error('Database initialization error:', error);
+    } finally {
+        if (conn) conn.release();
     }
 }
 
-handler.help = ['antibot [add/remove/clear] @user']
-handler.tags = ['group']
-handler.command = ['antibot']
-handler.admin = true
-handler.group = true
-handler.botAdmin = true
+// Initialize database on startup
+initDatabase();
 
-export default handler
+const handler = async (m, { conn, args, usedPrefix, command }) => {
+    let mysqlConn;
+    try {
+        console.log('[Restrict-Bot] Command received:', command, 'with args:', args);
+        
+        // Check if in group
+        if (!m.isGroup) {
+            console.log('[Restrict-Bot] Not a group chat');
+            return m.reply('❌ This command can only be used in groups!');
+        }
+
+        // Get sender's admin status
+        const metadata = await conn.groupMetadata(m.chat);
+        const participant = metadata.participants.find(p => p.id === m.sender);
+        
+        if (!participant) {
+            console.log('[Restrict-Bot] Participant not found in group');
+            return m.reply('❌ Could not verify your group status.');
+        }
+
+        const isAdmin = participant.admin === 'admin' || participant.admin === 'superadmin';
+        
+        if (!isAdmin) {
+            console.log('[Restrict-Bot] User is not admin');
+            return m.reply('❌ Only admins can use this command!');
+        }
+
+        const action = args[0]?.toLowerCase();
+        const mentioned = m.mentionedJid[0];
+        const groupId = m.chat;
+
+        console.log('[Restrict-Bot] Action:', action, 'Mentioned:', mentioned);
+
+        mysqlConn = await pool.getConnection();
+
+        switch (action) {
+            case 'add':
+                if (!mentioned) {
+                    console.log('[Restrict-Bot] No user mentioned');
+                    return m.reply('❌ Please mention a user to restrict!\nExample: .restrict-bot add @user');
+                }
+
+                // Check if already restricted
+                const [existing] = await mysqlConn.query(
+                    'SELECT * FROM restricted_users WHERE group_id = ? AND user_id = ?',
+                    [groupId, mentioned]
+                );
+
+                if (existing.length > 0) {
+                    console.log('[Restrict-Bot] User already restricted');
+                    return m.reply(`❌ @${mentioned.split('@')[0]} is already restricted!`, null, { mentions: [mentioned] });
+                }
+
+                // Add to restricted list
+                await mysqlConn.query(
+                    'INSERT INTO restricted_users (group_id, user_id, restricted_by) VALUES (?, ?, ?)',
+                    [groupId, mentioned, m.sender]
+                );
+
+                console.log('[Restrict-Bot] User restricted:', mentioned);
+                return m.reply(
+                    `✅ User @${mentioned.split('@')[0]} has been restricted - their messages will be auto-deleted.`,
+                    null,
+                    { mentions: [mentioned] }
+                );
+
+            case 'remove':
+                if (!mentioned) {
+                    console.log('[Restrict-Bot] No user mentioned');
+                    return m.reply('❌ Please mention a user to unrestrict!\nExample: .restrict-bot remove @user');
+                }
+
+                // Check if user is restricted
+                const [result] = await mysqlConn.query(
+                    'DELETE FROM restricted_users WHERE group_id = ? AND user_id = ?',
+                    [groupId, mentioned]
+                );
+
+                if (result.affectedRows === 0) {
+                    console.log('[Restrict-Bot] User not restricted');
+                    return m.reply(`❌ @${mentioned.split('@')[0]} is not restricted!`, null, { mentions: [mentioned] });
+                }
+
+                console.log('[Restrict-Bot] User unrestricted:', mentioned);
+                return m.reply(
+                    `✅ User @${mentioned.split('@')[0]} has been unrestricted.`,
+                    null,
+                    { mentions: [mentioned] }
+                );
+
+            case 'list':
+                console.log('[Restrict-Bot] Listing restricted users');
+                const [restricted] = await mysqlConn.query(
+                    'SELECT user_id FROM restricted_users WHERE group_id = ?',
+                    [groupId]
+                );
+
+                if (restricted.length === 0) {
+                    return m.reply('ℹ️ No users are currently restricted in this group.');
+                }
+
+                let list = '🚫 *Restricted Users*:\n';
+                restricted.forEach(user => {
+                    list += `▸ @${user.user_id.split('@')[0]}\n`;
+                });
+                return m.reply(
+                    list,
+                    null,
+                    { mentions: restricted.map(u => u.user_id) }
+                );
+
+            default:
+                console.log('[Restrict-Bot] Invalid action');
+                const helpText = `📝 *Restrict-Bot Usage*:
+
+🔒 Restrict a user:
+${usedPrefix}restrict-bot add @user
+
+🔓 Unrestrict a user:
+${usedPrefix}restrict-bot remove @user
+
+📋 List restricted users:
+${usedPrefix}restrict-bot list`;
+                return m.reply(helpText);
+        }
+    } catch (error) {
+        console.error('[Restrict-Bot] Handler error:', error);
+        return m.reply('❌ An error occurred while processing your command. Please try again later.');
+    } finally {
+        if (mysqlConn) mysqlConn.release();
+    }
+};
+
+// Message deletion handler
+export async function all(m, { conn }) {
+    let mysqlConn;
+    try {
+        // Only process in groups
+        if (!m.isGroup) return;
+        
+        mysqlConn = await pool.getConnection();
+
+        // Check if sender is restricted in this group
+        const [results] = await mysqlConn.query(
+            'SELECT 1 FROM restricted_users WHERE group_id = ? AND user_id = ?',
+            [m.chat, m.sender]
+        );
+
+        if (results.length > 0) {
+            console.log('[Restrict-Bot] Deleting message from restricted user:', m.sender);
+            
+            try {
+                // Delete the message
+                await conn.sendMessage(m.chat, {
+                    delete: {
+                        remoteJid: m.chat,
+                        fromMe: false,
+                        id: m.id,
+                        participant: m.sender
+                    }
+                });
+                
+                // Notify admins (optional)
+                const metadata = await conn.groupMetadata(m.chat);
+                const admins = metadata.participants
+                    .filter(p => p.admin === 'admin' || p.admin === 'superadmin')
+                    .map(p => p.id);
+                
+                if (admins.includes(conn.user.jid)) {
+                    await conn.sendMessage(m.chat, {
+                        text: `🚫 Deleted message from restricted user @${m.sender.split('@')[0]}`,
+                        mentions: [m.sender]
+                    }, { quoted: m });
+                }
+            } catch (deleteError) {
+                console.error('[Restrict-Bot] Delete error:', deleteError);
+            }
+        }
+    } catch (error) {
+        console.error('[Restrict-Bot] All handler error:', error);
+    } finally {
+        if (mysqlConn) mysqlConn.release();
+    }
+}
+
+handler.help = ['restrict-bot <add/remove/list> @user'];
+handler.tags = ['group', 'moderation'];
+handler.command = /^restrict-bot$/i;
+handler.group = true;
+handler.admin = true;
+handler.botAdmin = true;
+
+export default handler;
