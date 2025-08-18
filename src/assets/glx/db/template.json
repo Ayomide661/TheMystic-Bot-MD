@@ -1,56 +1,56 @@
 {
-    "user_cadastrado": {
-        "lista": [],
+    "user_registered": {
+        "list": [],
         "username": []
     },
-    "repositorio": {
-        "atualizado": []
+    "repository": {
+        "updated": []
     },
-    "notificacao": {
+    "notification": {
         "status": false,
-        "msg": [
-            "*NOTIFICACIÓN DE CAMBIOS*\n\n1) Correcciones en el comando glx viajar\n\n2) Se creó un proceso de Notificación para usuarios del juego\n\n3) Corrección en el archivo Template, para nuevas funciones"
+        "message": [
+            "*CHANGE NOTIFICATION*\n\n1) Fixes in the glx travel command\n\n2) A Notification process was created for game users\n\n3) Fix in the Template file for new features"
         ]
     },
-    "planetas": {
-        "terra": {
-            "idpelonome": "terra",
-            "nomeplaneta": "🌎 Terra",
-            "imgPerfil": "./src/assets/glx/terra.jpg",
+    "planets": {
+        "earth": {
+            "idByName": "earth",
+            "planetName": "🌎 Earth",
+            "profileImg": "./src/assets/glx/earth.jpg",
             "id": null,
-            "poder": 11000,
-            "habitantes": [],
-            "posicaoOcupadas": [],
-            "colonias": {
-                "colonia1": {
+            "power": 11000,
+            "inhabitants": [],
+            "occupiedPositions": [],
+            "colonies": {
+                "colony1": {
                     "id": 1,
-                    "nome": "Colonia Capital",
-                    "posicaoOcupadas": [],
-                    "habitantes": [],
-                    "visitantes": [],
-                    "localizacao": {
+                    "name": "Capital Colony",
+                    "occupiedPositions": [],
+                    "inhabitants": [],
+                    "visitors": [],
+                    "location": {
                         "x": 700,
                         "y": 190
                     }
                 },
-                "colonia2": {
+                "colony2": {
                     "id": 2,
-                    "nome": "Colonia Capital 222",
-                    "posicaoOcupadas": [],
-                    "habitantes": [],
-                    "visitantes": [],
-                    "localizacao": {
+                    "name": "Capital Colony 222",
+                    "occupiedPositions": [],
+                    "inhabitants": [],
+                    "visitors": [],
+                    "location": {
                         "x": 210,
                         "y": 130
                     }
                 },
-                "colonia3": {
+                "colony3": {
                     "id": 2,
-                    "nome": "Colonia Capital 3",
-                    "posicaoOcupadas": [],
-                    "habitantes": [],
-                    "visitantes": [],
-                    "localizacao": {
+                    "name": "Capital Colony 3",
+                    "occupiedPositions": [],
+                    "inhabitants": [],
+                    "visitors": [],
+                    "location": {
                         "x": 580,
                         "y": 380
                     }
@@ -58,21 +58,21 @@
             }
         },
         "megatron": {
-            "idpelonome": "megatron",
-            "nomeplaneta": "🌗 Megatron ",
-            "imgPerfil": "./src/glx/megatron.jpg",
+            "idByName": "megatron",
+            "planetName": "🌗 Megatron",
+            "profileImg": "./src/glx/megatron.jpg",
             "id": null,
-            "poder": 13000,
-            "habitantes": [],
-            "posicaoOcupadas": [],
-            "colonias": {
-                "colonia1": {
+            "power": 13000,
+            "inhabitants": [],
+            "occupiedPositions": [],
+            "colonies": {
+                "colony1": {
                     "id": 1,
-                    "nome": "Colonia Capital",
-                    "posicaoOcupadas": [],
-                    "habitantes": [],
-                    "visitantes": [],
-                    "localizacao": {
+                    "name": "Capital Colony",
+                    "occupiedPositions": [],
+                    "inhabitants": [],
+                    "visitors": [],
+                    "location": {
                         "x": 700,
                         "y": 190
                     }
@@ -80,128 +80,128 @@
             }
         }
     },
-    "naves": {
+    "spaceships": {
         "n1": {
             "id": "n1",
-            "nome": "N1 - Homuy",
-            "velocidade": 10,
+            "name": "N1 - Homuy",
+            "speed": 10,
             "xp": 298,
-            "poder": 1000,
-            "valor": 1000
+            "power": 1000,
+            "value": 1000
         },
         "n2": {
             "id": "n2",
-            "nome": "N2 - Hercules",
-            "velocidade": 23,
+            "name": "N2 - Hercules",
+            "speed": 23,
             "xp": 360,
-            "poder": 1856,
-            "valor": 2321
+            "power": 1856,
+            "value": 2321
         },
         "n3": {
             "id": "n3",
-            "nome": "N3 - Flexx",
-            "velocidade": 10,
+            "name": "N3 - Flexx",
+            "speed": 10,
             "xp": 600,
-            "poder": 1856,
-            "valor": 1900
+            "power": 1856,
+            "value": 1900
         }
     },
-    "itens": {
-        "mineracao": {
-            "madeira": {
-                "tempoMineracao": 11000,
-                "quantidadeMinerado": 4,
-                "valorVenda": 7.2,
-                "poder": 5
+    "items": {
+        "mining": {
+            "wood": {
+                "miningTime": 11000,
+                "minedQuantity": 4,
+                "saleValue": 7.2,
+                "power": 5
             },
-            "ferro": {
-                "tempoMineracao": 13000,
-                "quantidadeMinerado": 2,
-                "valorVenda": 9.78,
-                "poder": 6
+            "iron": {
+                "miningTime": 13000,
+                "minedQuantity": 2,
+                "saleValue": 9.78,
+                "power": 6
             },
-            "diamante": {
-                "tempoMineracao": 17000,
-                "quantidadeMinerado": 1,
-                "valorVenda": 15.67,
-                "poder": 8
+            "diamond": {
+                "miningTime": 17000,
+                "minedQuantity": 1,
+                "saleValue": 15.67,
+                "power": 8
             },
-            "esmeralda": {
-                "tempoMineracao": 19000,
-                "quantidadeMinerado": 2,
-                "valorVenda": 14.5,
-                "poder": 10
+            "emerald": {
+                "miningTime": 19000,
+                "minedQuantity": 2,
+                "saleValue": 14.5,
+                "power": 10
             },
-            "carvao": {
-                "tempoMineracao": 10000,
-                "quantidadeMinerado": 6,
-                "valorVenda": 5.56,
-                "poder": 4
+            "coal": {
+                "miningTime": 10000,
+                "minedQuantity": 6,
+                "saleValue": 5.56,
+                "power": 4
             },
-            "ouro": {
-                "tempoMineracao": 19000,
-                "quantidadeMinerado": 1,
-                "valorVenda": 17.9,
-                "poder": 14
+            "gold": {
+                "miningTime": 19000,
+                "minedQuantity": 1,
+                "saleValue": 17.9,
+                "power": 14
             },
-            "quartzo": {
-                "tempoMineracao": 15000,
-                "quantidadeMinerado": 1,
-                "valorVenda": 14.32,
-                "poder": 14
+            "quartz": {
+                "miningTime": 15000,
+                "minedQuantity": 1,
+                "saleValue": 14.32,
+                "power": 14
             }
         }
     },
     "api": {
-        "niveis": {
-            "nivel1": {
+        "levels": {
+            "level1": {
                 "id": 1,
-                "nome": "Recruta Espacial",
+                "name": "Space Recruit",
                 "totalXp": 1000
             },
-            "nivel2": {
+            "level2": {
                 "id": 2,
-                "nome": "Explorador Galáctico",
+                "name": "Galactic Explorer",
                 "totalXp": 2000
             },
-            "nivel3": {
+            "level3": {
                 "id": 3,
-                "nome": "Piloto Estelar",
+                "name": "Stellar Pilot",
                 "totalXp": 4000
             },
-            "nivel4": {
+            "level4": {
                 "id": 4,
-                "nome": "Comandante Intergaláctico",
+                "name": "Intergalactic Commander",
                 "totalXp": 7659
             },
-            "nivel5": {
+            "level5": {
                 "id": 5,
-                "nome": "Herói dos Planetas",
+                "name": "Planetary Hero",
                 "totalXp": 13569
             },
-            "nivel6": {
+            "level6": {
                 "id": 6,
-                "nome": "Guardião da Galáxia",
+                "name": "Guardian of the Galaxy",
                 "totalXp": 25005
             },
-            "nivel7": {
+            "level7": {
                 "id": 7,
-                "nome": "Mestre dos Cosmos",
+                "name": "Master of the Cosmos",
                 "totalXp": 29000
             },
-            "nivel8": {
+            "level8": {
                 "id": 8,
-                "nome": "Conquistador do Universo",
+                "name": "Universe Conqueror",
                 "totalXp": 45091
             },
-            "nivel9": {
+            "level9": {
                 "id": 9,
-                "nome": "Lendário Viajante Estelar",
+                "name": "Legendary Star Traveler",
                 "totalXp": 52012
             },
-            "nivel10": {
+            "level10": {
                 "id": 10,
-                "nome": "Imperador Galáctico",
+                "name": "Galactic Emperor",
                 "totalXp": 70299
             }
         }
