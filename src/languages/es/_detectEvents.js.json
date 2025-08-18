@@ -1,41 +1,41 @@
 {
     "_detectevents": {
         "promote": {
-            "header": "*Recientemente se ha promovido un miembro a administrador*",
-            "group": "*◦ Grupo:* @group",
-            "new_admin": "*◦ Nuevo admin:* @user",
-            "executed_by": "*◦ Ejecutado por:* @user"
+            "header": "*A member was recently promoted to admin*",
+            "group": "*◦ Group:* @group",
+            "new_admin": "*◦ New admin:* @user",
+            "executed_by": "*◦ Executed by:* @user"
         },
         "demote": {
-            "header": "*Recientemente se ha degradado un administrador a miembro*",
-            "group": "*◦ Grupo:* @group",
-            "removed_admin": "*◦ Se quitó a:* @user",
-            "executed_by": "*◦ Ejecutado por:* @user"
+            "header": "*An admin was recently demoted to member*",
+            "group": "*◦ Group:* @group",
+            "removed_admin": "*◦ Removed admin:* @user",
+            "executed_by": "*◦ Executed by:* @user"
         },
         "member_add": {
-            "header": "*Recientemente se ha incorporado un nuevo miembro*",
-            "group": "*◦ Grupo:* @group",
-            "added_user": "*◦ Se añadió a:* @user",
-            "added_by": "*◦ Añadido por:* @user",
-            "self_added": "*◦ Se unió:* @user"
+            "header": "*A new member was recently added*",
+            "group": "*◦ Group:* @group",
+            "added_user": "*◦ Added user:* @user",
+            "added_by": "*◦ Added by:* @user",
+            "self_added": "*◦ Joined:* @user"
         },
         "member_remove": {
-            "header": "*Recientemente se ha eliminado un miembro del grupo*",
-            "group": "*◦ Grupo:* @group",
-            "removed_user": "*◦ Se eliminó a:* @user",
-            "removed_by": "*◦ Eliminado por:* @user",
-            "self_removed": "*◦ Se salió:* @user"
+            "header": "*A member was recently removed from the group*",
+            "group": "*◦ Group:* @group",
+            "removed_user": "*◦ Removed user:* @user",
+            "removed_by": "*◦ Removed by:* @user",
+            "self_removed": "*◦ Left:* @user"
         },
         "group_settings": {
-            "header": "*Recientemente se han modificado los ajustes del grupo*",
-            "group": "*◦ Grupo:* @group",
-            "action": "*◦ El grupo se ha:* @action",
-            "executed_by": "*◦ Ejecutado por:* @user"
+            "header": "*Group settings were recently modified*",
+            "group": "*◦ Group:* @group",
+            "action": "*◦ The group was:* @action",
+            "executed_by": "*◦ Executed by:* @user"
         },
         "group_name": {
-            "header": "*Recientemente se ha cambiado el nombre del grupo*",
-            "new_name": "*◦ Nuevo nombre:* @name",
-            "executed_by": "*◦ Ejecutado por:* @user"
+            "header": "*The group name was recently changed*",
+            "new_name": "*◦ New name:* @name",
+            "executed_by": "*◦ Executed by:* @user"
         }
     }
 }
