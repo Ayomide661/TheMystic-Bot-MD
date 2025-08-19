@@ -1,11 +1,9 @@
 import axios from 'axios';
-import { AnimeQuote } from 'animequotes';
 
-// Anime Character Database
+// Enhanced Anime Character Database
 const ANIME_CHARACTERS = {
   tsundere: {
     name: 'Tsun-Tsun',
-    greet: 'B-baka! It’s not like I wanted to talk to you or anything!',
     responses: [
       { trigger: ['hi', 'hello'], reply: 'Hmph. W-what do you want?' },
       { trigger: ['love', 'like'], reply: 'D-don’t misunderstand! I just tolerate you!' },
@@ -13,28 +11,74 @@ const ANIME_CHARACTERS = {
     ]
   },
   kuudere: {
-    name: 'Cool-san',
-    greet: '...Oh. You’re here.',
+    name: 'Kuro',
     responses: [
       { trigger: ['weather'], reply: 'The weather is irrelevant to our conversation.' },
       { trigger: ['alone'], reply: 'Solitude is preferable to meaningless chatter.' }
     ]
   },
-  // Add more archetypes here
+  genki: {
+    name: 'Neko-chan',
+    responses: [
+      { trigger: ['food'], reply: 'Nyaa~! Let\'s get ramen! (≧▽≦)' },
+      { trigger: ['happy'], reply: 'Yay! Let\'s play together! ヽ(>∀<☆)ノ' }
+    ]
+  }
 };
 
-// List of commands/triggers to ignore
-const IGNORED_KEYWORDS = [
-  'serbot', 'bots', 'jadibot', 'menu', 'play', 'play2', 
-  'playdoc', 'tiktok', 'facebook', 'menu2', 'infobot',
-  'estado', 'ping', 'instalarbot', 'sc', 'sticker',
-  's', 'wm', 'qc'
-];
-
-const handler = (m) => m;
-
-handler.before = async (m) => {
+const handler = async (m, { conn }) => {
   const chat = global.db.data.chats[m.chat];
+  if (!chat.animeai) return;
+
+  try {
+    const text = m.text.toLowerCase();
+    
+    // 1. Check local responses first
+    for (const char of Object.values(ANIME_CHARACTERS)) {
+      for (const r of char.responses) {
+        if (r.trigger.some(t => text.includes(t))) {
+          await conn.reply(m.chat, `${char.name}: ${r.reply}`, m);
+          return;
+        }
+      }
+    }
+
+    // 2. Fallback to API
+    const apiResponse = await getAnimeAPIResponse(text);
+    await conn.reply(m.chat, apiResponse, m);
+    
+  } catch (error) {
+    console.error('AnimeAI Error:', error);
+    // Silent fail - don't spam chat with errors
+  }
+};
+
+async function getAnimeAPIResponse(text) {
+  try {
+    // Try AnimeChan API first
+    const { data } = await axios.get('https://animechan.xyz/api/random');
+    return `${data.character} (${data.anime}): "${data.quote}"`;
+    
+  } catch {
+    // Fallback to Waifu.pics
+    try {
+      const { data } = await axios.get('https://api.waifu.pics/sfw/neko');
+      return `Neko-chan: Look at this cute neko! ${data.url}`;
+      
+    } catch {
+      // Final fallback to local response
+      const chars = Object.values(ANIME_CHARACTERS);
+      const randomChar = chars[Math.floor(Math.random() * chars.length)];
+      const randomResponse = randomChar.responses[Math.floor(Math.random() * randomChar.responses.length)];
+      return `${randomChar.name}: ${randomResponse.reply}`;
+    }
+  }
+}
+
+// Enable/disable commands
+handler.command = /^(animeai|disableanime)$/i;
+handler.group = true;
+export default handler;  const chat = global.db.data.chats[m.chat];
   if (!chat.animeai) return true;
 
   // Skip if message is a command to disable
