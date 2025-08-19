@@ -1,85 +1,121 @@
 import axios from 'axios';
-import translate from '@vitalets/google-translate-api';
 import { AnimeQuote } from 'animequotes';
 
-const handler = async (m, { conn, text, usedPrefix, command }) => {
-  // Anime character database (local fallback)
-  const animeCharacters = {
-    tsundere: {
-      name: 'Tsun-Tsun',
-      greet: 'B-baka! It’s not like I wanted to talk to you or anything!',
-      responses: [
-        { trigger: ['hi', 'hello'], reply: 'Hmph. W-what do you want?' },
-        { trigger: ['love', 'like'], reply: 'D-don’t misunderstand! I just tolerate you!' },
-        { trigger: ['stupid', 'idiot'], reply: 'Who are you calling idiot, idiot?!' }
-      ]
-    },
-    kuudere: {
-      name: 'Cool-san',
-      greet: '...Oh. You’re here.',
-      responses: [
-        { trigger: ['weather'], reply: 'The weather is irrelevant to our conversation.' },
-        { trigger: ['alone'], reply: 'Solitude is preferable to meaningless chatter.' }
-      ]
-    }
-  };
+// Anime Character Database
+const ANIME_CHARACTERS = {
+  tsundere: {
+    name: 'Tsun-Tsun',
+    greet: 'B-baka! It’s not like I wanted to talk to you or anything!',
+    responses: [
+      { trigger: ['hi', 'hello'], reply: 'Hmph. W-what do you want?' },
+      { trigger: ['love', 'like'], reply: 'D-don’t misunderstand! I just tolerate you!' },
+      { trigger: ['stupid', 'idiot'], reply: 'Who are you calling idiot, idiot?!' }
+    ]
+  },
+  kuudere: {
+    name: 'Cool-san',
+    greet: '...Oh. You’re here.',
+    responses: [
+      { trigger: ['weather'], reply: 'The weather is irrelevant to our conversation.' },
+      { trigger: ['alone'], reply: 'Solitude is preferable to meaningless chatter.' }
+    ]
+  },
+  // Add more archetypes here
+};
 
-  // Random anime quote fallback
-  const getAnimeQuote = async () => {
-    const quote = await AnimeQuote.randomQuote();
-    return `${quote.character} (${quote.anime}): "${quote.quote}"`;
-  };
+// List of commands/triggers to ignore
+const IGNORED_KEYWORDS = [
+  'serbot', 'bots', 'jadibot', 'menu', 'play', 'play2', 
+  'playdoc', 'tiktok', 'facebook', 'menu2', 'infobot',
+  'estado', 'ping', 'instalarbot', 'sc', 'sticker',
+  's', 'wm', 'qc'
+];
 
-  // 1. Try local anime responses first
+const handler = (m) => m;
+
+handler.before = async (m) => {
+  const chat = global.db.data.chats[m.chat];
+  if (!chat.animeai) return true;
+
+  // Skip if message is a command to disable
+  if (/^.*false|disable|(turn)?off|0/i.test(m.text)) return;
+
+  // Skip ignored keywords
+  if (IGNORED_KEYWORDS.some(keyword => m.text.toLowerCase().includes(keyword))) {
+    return;
+  }
+
+  try {
+    const response = await getAnimeResponse(m.text);
+    await m.conn.sendMessage(m.chat, { text: response }, { quoted: m });
+    return true;
+  } catch (error) {
+    console.error('AnimeAI error:', error);
+    return true;
+  }
+};
+
+async function getAnimeResponse(text) {
+  // 1. Check local anime responses
   const lowerText = text.toLowerCase();
-  let response;
-
-  for (const charType in animeCharacters) {
-    const char = animeCharacters[charType];
+  for (const charType in ANIME_CHARACTERS) {
+    const char = ANIME_CHARACTERS[charType];
     for (const r of char.responses) {
       if (r.trigger.some(t => lowerText.includes(t))) {
-        response = `${char.name}: ${r.reply}`;
-        break;
+        return `${char.name}: ${r.reply}`;
       }
     }
   }
 
-  // 2. Fallback to AI APIs (Anime-style)
-  if (!response) {
-    try {
-      // Option 1: Anime-themed API
-      const { data } = await axios.get(`https://api.anime-reactions.uzumaki-unofficial.workers.dev/chat?msg=${encodeURIComponent(text)}`);
-      response = data.response;
+  // 2. Try anime-themed APIs in order
+  const apis = [
+    tryAnimeReactionsAPI,
+    tryAnimeChanAPI,
+    tryWaifuAPI
+  ];
 
-      // Option 2: Local quote if API fails
-      if (!response) response = await getAnimeQuote();
-    } catch (e) {
-      response = `*${animeCharacters.tsundere.name}*: Urusai! (I-I’m busy right now!)`;
+  for (const api of apis) {
+    try {
+      const response = await api(text);
+      if (response) return response;
+    } catch (error) {
+      console.warn(`API ${api.name} failed:`, error.message);
     }
   }
 
-  // Optional: Add text-to-speech (Japanese voice)
-  /*
-  const tts = await conn.tts(response, 'ja');
-  conn.sendMessage(m.chat, 
-    { audio: tts, mimetype: 'audio/mpeg' }, 
-    { quoted: m, ptt: true }
+  // 3. Final fallback
+  return getRandomAnimeResponse();
+}
+
+// Anime-themed APIs
+async function tryAnimeReactionsAPI(text) {
+  const { data } = await axios.get(
+    `https://api.anime-reactions.uzumaki-unofficial.workers.dev/chat?msg=${encodeURIComponent(text)}`
   );
-  */
+  return data.response || null;
+}
 
-  // Send text response
-  conn.reply(m.chat, response, m);
-};
+async function tryAnimeChanAPI() {
+  const { data } = await axios.get('https://animechan.xyz/api/random');
+  return `${data.character} (${data.anime}): "${data.quote}"`;
+}
 
-handler.help = ['animeai <text>'];
-handler.tags = ['anime'];
-handler.command = /^(animebot|animeai|senpai|baka)$/i;
-export default handler;    } catch {
-        try {
-            const response2 = await axios.get(`https://api.anbusec.xyz/api/v1/simitalk?apikey=${apikeyyy}&ask=${ask}&lc=${language}`);
-            return { status: true, resultado: { simsimi: response2.data.message }};       
-        } catch (error2) {
-            return { status: false, resultado: { msg: "Todas las API's fallarón. Inténtalo de nuevo más tarde.", error: error2.message }};
-        }
-    }
-}}
+async function tryWaifuAPI(text) {
+  const { data } = await axios.post(
+    'https://api.waifu.pics/sfw/chat',
+    { message: text }
+  );
+  return data.response;
+}
+
+function getRandomAnimeResponse() {
+  const characters = Object.values(ANIME_CHARACTERS);
+  const randomChar = characters[Math.floor(Math.random() * characters.length)];
+  const responses = randomChar.responses.map(r => r.reply);
+  return `${randomChar.name}: ${responses[Math.floor(Math.random() * responses.length)]}`;
+}
+
+// Enable/disable commands
+handler.command = /^(animeai|disableanime)$/i;
+handler.rowner = true;
+export default handler;
