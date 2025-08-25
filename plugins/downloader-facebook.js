@@ -6,11 +6,11 @@ let handler = async (m, { args, conn, text, usedPrefix, command }) => {
     const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
     const tradutor = _translate.plugins.descargas_facebook;
 
-  if (!text) throw `_*${tradutor.texto1[0]}*_\n\n*${tradutor.texto1[1]}*\n\n*${tradutor.texto1[2]}* ${usedPrefix + command} https://www.facebook.com/share/v/1E5R3gRuHk/`;
+  if (!text) throw `_*${tradutor.text1[0]}*_\n\n*${tradutor.text1[1]}*\n\n*${tradutor.text1[2]}* ${usedPrefix + command} https://www.facebook.com/share/v/1E5R3gRuHk/`;
 
     const platform = 'facebook';
     // Admite: ('tiktok' & 'instagram')
-    
+
     try {
         const links = await fetchDownloadLinks(text, platform, conn, m);
         if (!links) return;
@@ -18,7 +18,6 @@ let handler = async (m, { args, conn, text, usedPrefix, command }) => {
         if (links.length === 0) return await conn.sendMessage(m.chat, { text: '*[ ❌ ] No se encontraron enlaces de descarga.*' }, { quoted: m });
 
         let download = getDownloadLink(platform, links);
-
         if (!download) return await conn.sendMessage(m.chat, { text: '*[ ❌ ] Error al obtener el enlace de descarga.*' }, { quoted: m });
 
         if (Array.isArray(download)) {
@@ -69,7 +68,7 @@ async function fetchDownloadLinks(text, platform, conn, m) {
     });
 
     const html = res?.data?.html;
-    
+
     if (!html || res?.data?.status !== 'success') {
         await conn.sendMessage(m.chat, { text: '*[❌] Error al obtener datos del servidor.*' }, { quoted: m });
         return null;
@@ -77,7 +76,7 @@ async function fetchDownloadLinks(text, platform, conn, m) {
 
     const $ = cheerio.load(html);
     const links = [];
-    
+
     $('a.btn[href^="http"]').each((_, el) => {
         const link = $(el).attr('href');
         if (link && !links.includes(link)) {
