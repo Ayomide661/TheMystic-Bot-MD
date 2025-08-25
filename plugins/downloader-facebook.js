@@ -9,29 +9,29 @@ let handler = async (m, { args, conn, text, usedPrefix, command }) => {
   if (!text) throw `_*${tradutor.text1[0]}*_\n\n*${tradutor.text1[1]}*\n\n*${tradutor.text1[2]}* ${usedPrefix + command} https://www.facebook.com/share/v/1E5R3gRuHk/`;
 
     const platform = 'facebook';
-    // Admite: ('tiktok' & 'instagram')
+    // Supports: ('tiktok' & 'instagram')
 
     try {
         const links = await fetchDownloadLinks(text, platform, conn, m);
         if (!links) return;
 
-        if (links.length === 0) return await conn.sendMessage(m.chat, { text: '*[ ❌ ] No se encontraron enlaces de descarga.*' }, { quoted: m });
+        if (links.length === 0) return await conn.sendMessage(m.chat, { text: '*[ ❌ ] No download links were found.*' }, { quoted: m });
 
         let download = getDownloadLink(platform, links);
-        if (!download) return await conn.sendMessage(m.chat, { text: '*[ ❌ ] Error al obtener el enlace de descarga.*' }, { quoted: m });
+        if (!download) return await conn.sendMessage(m.chat, { text: '*[ ❌ ] Error getting download link.*' }, { quoted: m });
 
         if (Array.isArray(download)) {
             for (const media of download) {
                 try {
                     await conn.sendMessage(m.chat, { image: { url: media }, caption: `*[📥] Instagram Downloader*\n${media}` }, { quoted: m });
                 } catch (err) {
-                    console.log(`Error enviando ${media}:`, err.message);
+                    console.log(`Error sending ${media}:`, err.message);
                 }
             }
         } else {
             try {
                 const ext = download.includes('.mp4') ? 'mp4' : 'jpg';
-                const caption = `*📥 Descarga de ${platform} exitosa!*`;
+                const caption = `*📥 ${platform} download successful!*`;
 
                 if (ext === 'mp4') {
                     await conn.sendMessage(m.chat, { video: { url: download }, caption: caption }, { quoted: m });
@@ -39,13 +39,13 @@ let handler = async (m, { args, conn, text, usedPrefix, command }) => {
                     await conn.sendMessage(m.chat, { image: { url: download }, caption: caption }, { quoted: m });
                 }
             } catch (err) {
-                return await conn.sendMessage(m.chat, { text: `*[❌] Error al enviar el archivo:* ${err.message}` }, { quoted: m });
+                return await conn.sendMessage(m.chat, { text: `*[❌] Error sending file:* ${err.message}` }, { quoted: m });
             }
         }
 
     } catch (error) {
-        console.log('Error en downloader:', error);
-        return await conn.sendMessage(m.chat, { text: `*[❌] Ocurrió un error:*\n${error.message || error}` }, { quoted: m });
+        console.log('Error in downloader:', error);
+        return await conn.sendMessage(m.chat, { text: `*[❌] An error occurred:*\n${error.message || error}` }, { quoted: m });
     }
 };
 
@@ -70,7 +70,7 @@ async function fetchDownloadLinks(text, platform, conn, m) {
     const html = res?.data?.html;
 
     if (!html || res?.data?.status !== 'success') {
-        await conn.sendMessage(m.chat, { text: '*[❌] Error al obtener datos del servidor.*' }, { quoted: m });
+        await conn.sendMessage(m.chat, { text: '*[❌] Error getting data from server.*' }, { quoted: m });
         return null;
     }
 
