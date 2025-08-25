@@ -18,7 +18,7 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
 
   try {
     // Validate JID format
-    if (!jid.includes('@') || !jid.endsWith('.net') && !jid.endsWith('.com')) {
+    if (!jid.includes('@') || (!jid.endsWith('.net') && !jid.endsWith('.com'))) {
       return conn.reply(m.chat, 
         `*Invalid JID format!*\n` +
         `Please use a valid WhatsApp JID:\n` +
@@ -27,8 +27,8 @@ const handler = async (m, { conn, args, usedPrefix, command }) => {
       );
     }
 
-    // Forward the quoted message
-    await conn.forwardMessage(jid, m.quoted.fakeObj);
+    // Use forwardOrBroadCast function instead of conn.forwardMessage
+    await forwardOrBroadCast(jid, m);
 
     // Success confirmation
     await conn.reply(m.chat, 
