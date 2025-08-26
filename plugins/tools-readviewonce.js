@@ -22,7 +22,7 @@ const handler = async (m, {conn}) => {
     return conn.sendFile(m.chat, buffer, 'error.jpg', msg?.caption ? msg?.caption : '', m);
   }
 };
-handler.help = ['readvo'];
+handler.help = ['vv'];
 handler.tags = ['tools'];
-handler.command = /^(readviewonce|read|revelar|readvo)$/i;
+handler.command = /^(vv)$/i;
 export default handler;
