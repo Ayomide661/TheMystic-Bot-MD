@@ -1,79 +1,180 @@
 import fetch from 'node-fetch';
-import {
-    FormData,
-    Blob
-} from 'formdata-node';
-import {
-    JSDOM
-} from 'jsdom';
+import { FormData, Blob } from 'formdata-node';
+import { JSDOM } from 'jsdom';
+import { fileTypeFromBuffer } from 'file-type';
+
 /**
- * 
+ * Convert WebP to MP4 using ezgif.com
  * @param {Buffer|String} source 
  */
 async function webp2mp4(source) {
-    let form = new FormData()
-    let isUrl = typeof source === 'string' && /https?:\/\//.test(source)
-    const blob = !isUrl && new Blob([source.toArrayBuffer()])
-    form.append('new-image-url', isUrl ? blob : '')
-    form.append('new-image', isUrl ? '' : blob, 'image.webp')
-    let res = await fetch('https://ezgif.com/webp-to-mp4', {
-        method: 'POST',
-        body: form
-    })
-    let html = await res.text()
-    let {
-        document
-    } = new JSDOM(html).window
-    let form2 = new FormData()
-    let obj = {}
-    for (let input of document.querySelectorAll('form input[name]')) {
-        obj[input.name] = input.value
-        form2.append(input.name, input.value)
+    try {
+        const form = new FormData();
+        const isUrl = typeof source === 'string' && /https?:\/\//.test(source);
+        
+        if (isUrl) {
+            form.append('new-image-url', source);
+        } else {
+            // Ensure source is a Buffer
+            const buffer = Buffer.isBuffer(source) ? source : Buffer.from(source);
+            const blob = new Blob([buffer], { type: 'image/webp' });
+            form.append('new-image', blob, 'image.webp');
+        }
+
+        // First request to upload the image
+        const res = await fetch('https://ezgif.com/webp-to-mp4', {
+            method: 'POST',
+            body: form
+        });
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const html = await res.text();
+        const { document } = new JSDOM(html).window;
+        
+        // Find the conversion form
+        const form2 = new FormData();
+        const obj = {};
+        
+        const formInputs = document.querySelectorAll('form input[name]');
+        for (const input of formInputs) {
+            obj[input.name] = input.value;
+            form2.append(input.name, input.value);
+        }
+        
+        if (!obj.file) {
+            throw new Error('Could not find file parameter in response');
+        }
+
+        // Second request to process the conversion
+        const res2 = await fetch('https://ezgif.com/webp-to-mp4/' + obj.file, {
+            method: 'POST',
+            body: form2
+        });
+        
+        if (!res2.ok) {
+            throw new Error(`HTTP error! status: ${res2.status}`);
+        }
+        
+        const html2 = await res2.text();
+        const { document: document2 } = new JSDOM(html2).window;
+        
+        // Find the result video
+        const videoSource = document2.querySelector('div#output > p.outfile > video > source');
+        if (!videoSource || !videoSource.src) {
+            throw new Error('Could not find converted video in response');
+        }
+        
+        return new URL(videoSource.src, res2.url).toString();
+        
+    } catch (error) {
+        console.error('webp2mp4 error:', error);
+        throw error;
     }
-    let res2 = await fetch('https://ezgif.com/webp-to-mp4/' + obj.file, {
-        method: 'POST',
-        body: form2
-    })
-    let html2 = await res2.text()
-    let {
-        document: document2
-    } = new JSDOM(html2).window
-    return new URL(document2.querySelector('div#output > p.outfile > video > source').src, res2.url).toString()
 }
 
+/**
+ * Convert WebP to PNG using ezgif.com
+ * @param {Buffer|String} source 
+ */
 async function webp2png(source) {
-    let form = new FormData()
-    let isUrl = typeof source === 'string' && /https?:\/\//.test(source)
-    const blob = !isUrl && new Blob([source.toArrayBuffer()])
-    form.append('new-image-url', isUrl ? blob : '')
-    form.append('new-image', isUrl ? '' : blob, 'image.webp')
-    let res = await fetch('https://ezgif.com/webp-to-png', {
-        method: 'POST',
-        body: form
-    })
-    let html = await res.text()
-    let {
-        document
-    } = new JSDOM(html).window
-    let form2 = new FormData()
-    let obj = {}
-    for (let input of document.querySelectorAll('form input[name]')) {
-        obj[input.name] = input.value
-        form2.append(input.name, input.value)
+    try {
+        const form = new FormData();
+        const isUrl = typeof source === 'string' && /https?:\/\//.test(source);
+        
+        if (isUrl) {
+            form.append('new-image-url', source);
+        } else {
+            // Ensure source is a Buffer
+            const buffer = Buffer.isBuffer(source) ? source : Buffer.from(source);
+            const blob = new Blob([buffer], { type: 'image/webp' });
+            form.append('new-image', blob, 'image.webp');
+        }
+
+        // First request to upload the image
+        const res = await fetch('https://ezgif.com/webp-to-png', {
+            method: 'POST',
+            body: form
+        });
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const html = await res.text();
+        const { document } = new JSDOM(html).window;
+        
+        // Find the conversion form
+        const form2 = new FormData();
+        const obj = {};
+        
+        const formInputs = document.querySelectorAll('form input[name]');
+        for (const input of formInputs) {
+            obj[input.name] = input.value;
+            form2.append(input.name, input.value);
+        }
+        
+        if (!obj.file) {
+            throw new Error('Could not find file parameter in response');
+        }
+
+        // Second request to process the conversion
+        const res2 = await fetch('https://ezgif.com/webp-to-png/' + obj.file, {
+            method: 'POST',
+            body: form2
+        });
+        
+        if (!res2.ok) {
+            throw new Error(`HTTP error! status: ${res2.status}`);
+        }
+        
+        const html2 = await res2.text();
+        const { document: document2 } = new JSDOM(html2).window;
+        
+        // Find the result image
+        const imgElement = document2.querySelector('div#output > p.outfile > img');
+        if (!imgElement || !imgElement.src) {
+            throw new Error('Could not find converted image in response');
+        }
+        
+        return new URL(imgElement.src, res2.url).toString();
+        
+    } catch (error) {
+        console.error('webp2png error:', error);
+        throw error;
     }
-    let res2 = await fetch('https://ezgif.com/webp-to-png/' + obj.file, {
-        method: 'POST',
-        body: form2
-    })
-    let html2 = await res2.text()
-    let {
-        document: document2
-    } = new JSDOM(html2).window
-    return new URL(document2.querySelector('div#output > p.outfile > img').src, res2.url).toString()
+}
+
+/**
+ * Alternative method using direct download instead of URL
+ */
+async function webp2mp4Buffer(source) {
+    try {
+        const url = await webp2mp4(source);
+        const response = await fetch(url);
+        return await response.buffer();
+    } catch (error) {
+        console.error('webp2mp4Buffer error:', error);
+        throw error;
+    }
+}
+
+async function webp2pngBuffer(source) {
+    try {
+        const url = await webp2png(source);
+        const response = await fetch(url);
+        return await response.buffer();
+    } catch (error) {
+        console.error('webp2pngBuffer error:', error);
+        throw error;
+    }
 }
 
 export {
     webp2mp4,
-    webp2png
-}
-// By @nm9h
+    webp2png,
+    webp2mp4Buffer,
+    webp2pngBuffer
+};
