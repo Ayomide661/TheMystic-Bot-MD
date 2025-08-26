@@ -14,63 +14,78 @@ const handler = async (m, {conn, args, usedPrefix, command}) => {
     } else if (m.quoted && m.quoted.text) {
         text = m.quoted.text;
     } else {
-        throw tradutor.text1;
+        throw tradutor.text1 || "Please provide text or quote a message";
     }
     
-    if (!text) return m.reply(tradutor.text2);
+    if (!text) return m.reply(tradutor.text2 || "No text found");
     
     const who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender; 
     const mentionRegex = new RegExp(`@${who.split('@')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`, 'g');
     const mishi = text.replace(mentionRegex, '');
     
-    if (mishi.length > 30) return m.reply(tradutor.text3);
+    if (mishi.length > 30) return m.reply(tradutor.text3 || "Text is too long (max 30 characters)");
     
     try {
         const pp = await conn.profilePictureUrl(who).catch((_) => 'https://telegra.ph/file/24fa902ead26340f3df2c.png');
         const nombre = await conn.getName(who);
         
-        const obj = {
-            "type": "quote",
-            "format": "png", 
-            "backgroundColor": "#000000",
-            "width": 512,
-            "height": 768,
-            "scale": 2,
-            "messages": [{
-                "entities": [],
-                "avatar": true,
-                "from": {
-                    "id": 1,
-                    "name": nombre,
-                    "photo": {
-                        "url": pp
-                    }
-                },
-                "text": mishi,
-                "replyMessage": {}
-            }]
-        };
+        // Alternative API endpoint that might work better
+        const apiUrl = 'https://api.erdwpe.com/api/maker/quotemaker';
         
-        const json = await axios.post('https://bot.lyo.su/quote/generate', obj, {
-            headers: {'Content-Type': 'application/json'}
+        const formData = new URLSearchParams();
+        formData.append('text', mishi);
+        formData.append('username', nombre);
+        formData.append('avatar', pp);
+        
+        const response = await axios.post(apiUrl, formData, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            responseType: 'arraybuffer'
         });
         
-        if (!json.data || !json.data.result || !json.data.result.image) {
-            throw new Error('Invalid response from quote API');
+        if (!response.data || response.data.length === 0) {
+            throw new Error('Empty response from quote API');
         }
         
-        const buffer = Buffer.from(json.data.result.image, 'base64');
+        // Convert the arraybuffer to buffer
+        const buffer = Buffer.from(response.data);
+        
+        // Create sticker
         const stiker = await sticker(buffer, false, global.packname, global.author);
         
-        if (stiker) {
+        if (stiker && stiker.length > 0) {
             return conn.sendFile(m.chat, stiker, 'sticker.webp', '', m);
         } else {
-            throw new Error('Failed to create sticker');
+            // Fallback: send as image if sticker creation fails
+            return conn.sendFile(m.chat, buffer, 'quote.png', '', m);
         }
         
     } catch (error) {
         console.error('Error in qc command:', error);
-        return m.reply(`Error: ${error.message}`);
+        
+        // Try an alternative method if the first API fails
+        try {
+            // Using a different quote API
+            const altApiUrl = `https://api.lolhuman.xyz/api/quote2?apikey=your_api_key&text=${encodeURIComponent(mishi)}&username=${encodeURIComponent(nombre)}`;
+            const response = await axios.get(altApiUrl, { responseType: 'arraybuffer' });
+            
+            if (response.data && response.data.length > 0) {
+                const buffer = Buffer.from(response.data);
+                const stiker = await sticker(buffer, false, global.packname, global.author);
+                
+                if (stiker && stiker.length > 0) {
+                    return conn.sendFile(m.chat, stiker, 'sticker.webp', '', m);
+                } else {
+                    return conn.sendFile(m.chat, buffer, 'quote.png', '', m);
+                }
+            }
+        } catch (fallbackError) {
+            console.error('Fallback also failed:', fallbackError);
+            return m.reply(tradutor.text4 || "Failed to create quote sticker. Please try again later.");
+        }
+        
+        return m.reply(tradutor.text4 || "Failed to create quote sticker. Please try again later.");
     }
 }
 
