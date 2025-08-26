@@ -1,232 +1,287 @@
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import * as fs from 'fs'
-import * as path from 'path'
-import * as  crypto from 'crypto'
-import { ffmpeg } from './converter.js'
-import fluent_ffmpeg from 'fluent-ffmpeg'
-import { spawn } from 'child_process'
-import uploadFile from './uploadFile.js'
-import uploadImage from './uploadImage.js'
-import { fileTypeFromBuffer } from 'file-type'
-import webp from 'node-webpmux'
-import fetch from 'node-fetch'
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+import { ffmpeg } from './converter.js';
+import fluentFfmpeg from 'fluent-ffmpeg';
+import { spawn } from 'child_process';
+import uploadFile from './uploadFile.js';
+import uploadImage from './uploadImage.js';
+import { fileTypeFromBuffer } from 'file-type';
+import { Image } from 'node-webpmux';
+import fetch from 'node-fetch';
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const tmp = path.join(__dirname, '../tmp')
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const tmp = path.join(__dirname, '../tmp');
+
+// Ensure tmp directory exists
+if (!fs.existsSync(tmp)) {
+  fs.mkdirSync(tmp, { recursive: true });
+}
+
 /**
- * Image to Sticker
- * @param {Buffer} img Image Buffer
- * @param {String} url Image URL
+ * Image to Sticker using FFmpeg and ImageMagick
  */
 function sticker2(img, url) {
   return new Promise(async (resolve, reject) => {
     try {
       if (url) {
-        const res = await fetch(url)
-        if (res.status !== 200) throw await res.text()
-        img = await res.buffer()
+        const res = await fetch(url);
+        if (res.status !== 200) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+        img = await res.buffer();
       }
-      const inp = path.join(tmp, +new Date + '.jpeg')
-      await fs.promises.writeFile(inp, img)
+      
+      const inp = path.join(tmp, `${Date.now()}.jpeg`);
+      await fs.promises.writeFile(inp, img);
+      
       const ff = spawn('ffmpeg', [
         '-y',
         '-i', inp,
         '-vf', 'scale=512:512:flags=lanczos:force_original_aspect_ratio=decrease,format=rgba,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000,setsar=1',
         '-f', 'png',
         '-'
-      ])
-      ff.on('error', reject)
+      ]);
+      
+      const bufs = [];
+      ff.stdout.on('data', chunk => bufs.push(chunk));
+      ff.on('error', reject);
       ff.on('close', async () => {
-        await fs.promises.unlink(inp)
-      })
-      const bufs = []
-      const [_spawnprocess, ..._spawnargs] = [...(module.exports.support.gm ? ['gm'] : module.exports.magick ? ['magick'] : []), 'convert', 'png:-', 'webp:-']
-      const im = spawn(_spawnprocess, _spawnargs)
-      im.on('error', e => conn.reply(m.chat, util.format(e), m))
-      im.stdout.on('data', chunk => bufs.push(chunk))
-      ff.stdout.pipe(im.stdin)
+        try {
+          await fs.promises.unlink(inp);
+        } catch (e) {
+          console.error('Error deleting temp file:', e);
+        }
+      });
+      
+      // Use ImageMagick if available, otherwise use native conversion
+      const im = spawn('convert', ['png:-', 'webp:-']);
+      im.on('error', () => {
+        // Fallback to manual conversion if ImageMagick fails
+        resolve(Buffer.concat(bufs)); // Return PNG if conversion fails
+      });
+      
+      im.stdout.on('data', chunk => bufs.push(chunk));
+      ff.stdout.pipe(im.stdin);
+      
       im.on('exit', () => {
-        resolve(Buffer.concat(bufs))
-      })
+        resolve(Buffer.concat(bufs));
+      });
+      
     } catch (e) {
-      reject(e)
+      reject(e);
     }
-  })
+  });
 }
 
 /**
- * Image/Video to Sticker
- * @param {Buffer} img Image/Video Buffer
- * @param {String} url Image/Video URL
- * @param {String} packname EXIF Packname
- * @param {String} author EXIF Author
+ * Sticker with metadata using external API
  */
 async function sticker3(img, url, packname, author) {
-  url = url ? url : await uploadFile(img)
-  const res = await fetch('https://api.xteam.xyz/sticker/wm?' + new URLSearchParams(Object.entries({
-    url,
-    packname,
-    author
-  })))
-  return await res.buffer()
+  try {
+    url = url || await uploadFile(img);
+    const params = new URLSearchParams();
+    if (packname) params.append('packname', packname);
+    if (author) params.append('author', author);
+    if (url) params.append('url', url);
+    
+    const res = await fetch(`https://api.xteam.xyz/sticker/wm?${params}`);
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    
+    return await res.buffer();
+  } catch (error) {
+    console.error('Sticker3 error:', error);
+    throw error;
+  }
 }
 
 /**
- * Image to Sticker
- * @param {Buffer} img Image/Video Buffer
- * @param {String} url Image/Video URL
+ * Image to Sticker using FFmpeg
  */
 async function sticker4(img, url) {
-  if (url) {
-    const res = await fetch(url)
-    if (res.status !== 200) throw await res.text()
-    img = await res.buffer()
+  try {
+    if (url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      img = await res.buffer();
+    }
+    
+    return await ffmpeg(img, [
+      '-vf', 'scale=512:512:flags=lanczos:force_original_aspect_ratio=decrease,format=rgba,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000,setsar=1'
+    ], 'jpeg', 'webp');
+  } catch (error) {
+    console.error('Sticker4 error:', error);
+    throw error;
   }
-  return await ffmpeg(img, [
-    '-vf', 'scale=512:512:flags=lanczos:force_original_aspect_ratio=decrease,format=rgba,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000,setsar=1'
-  ], 'jpeg', 'webp')
 }
 
+/**
+ * Sticker using wa-sticker-formatter
+ */
 async function sticker5(img, url, packname, author, categories = [''], extra = {}) {
-  const { Sticker } = await import('wa-sticker-formatter')
-  const stickerMetadata = {
-    type: 'default',
-    pack: packname,
-    author,
-    categories,
-    ...extra
+  try {
+    const { Sticker } = await import('wa-sticker-formatter');
+    const stickerMetadata = {
+      type: 'default',
+      pack: packname || 'My Pack',
+      author: author || 'My Bot',
+      categories,
+      ...extra
+    };
+    
+    const sticker = new Sticker(img || url, stickerMetadata);
+    return await sticker.toBuffer();
+  } catch (error) {
+    console.error('Sticker5 error:', error);
+    throw error;
   }
-  return (new Sticker(img ? img : url, stickerMetadata)).toBuffer()
 }
 
 /**
  * Convert using fluent-ffmpeg
- * @param {string} img 
- * @param {string} url 
  */
 function sticker6(img, url) {
   return new Promise(async (resolve, reject) => {
-    if (url) {
-      const res = await fetch(url)
-      if (res.status !== 200) throw await res.text()
-      img = await res.buffer()
+    try {
+      if (url) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        img = await res.buffer();
+      }
+      
+      const type = await fileTypeFromBuffer(img) || { ext: 'bin' };
+      if (type.ext === 'bin') {
+        reject(new Error('Unsupported file type'));
+        return;
+      }
+      
+      const inputPath = path.join(tmp, `${Date.now()}.${type.ext}`);
+      const outputPath = path.join(tmp, `${Date.now()}.webp`);
+      
+      await fs.promises.writeFile(inputPath, img);
+      
+      const isVideo = /video/i.test(type.mime);
+      const command = fluentFfmpeg(inputPath);
+      
+      if (isVideo) {
+        command.inputFormat(type.ext);
+      }
+      
+      command
+        .on('error', (err) => {
+          console.error('FFmpeg error:', err);
+          fs.promises.unlink(inputPath).catch(console.error);
+          reject(err);
+        })
+        .on('end', async () => {
+          try {
+            const result = await fs.promises.readFile(outputPath);
+            await Promise.all([
+              fs.promises.unlink(inputPath),
+              fs.promises.unlink(outputPath)
+            ]);
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          }
+        })
+        .addOutputOptions([
+          '-vcodec', 'libwebp',
+          '-vf', `scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15,pad=320:320:-1:-1:color=white@0.0,split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`
+        ])
+        .toFormat('webp')
+        .save(outputPath);
+        
+    } catch (error) {
+      reject(error);
     }
-    const type = await fileTypeFromBuffer(img) || {
-      mime: 'application/octet-stream',
-      ext: 'bin'
-    }
-    if (type.ext == 'bin') reject(img)
-    const tmp = path.join(__dirname, `../tmp/${+ new Date()}.${type.ext}`)
-    const out = path.join(tmp + '.webp')
-    await fs.promises.writeFile(tmp, img)
-    // https://github.com/MhankBarBar/termux-wabot/blob/main/index.js#L313#L368
-    const Fffmpeg = /video/i.test(type.mime) ? fluent_ffmpeg(tmp).inputFormat(type.ext) : fluent_ffmpeg(tmp).input(tmp)
-    Fffmpeg
-      .on('error', function (err) {
-        console.error(err)
-        fs.promises.unlink(tmp)
-        reject(img)
-      })
-      .on('end', async function () {
-        fs.promises.unlink(tmp)
-        resolve(await fs.promises.readFile(out))
-      })
-      .addOutputOptions([
-        `-vcodec`, `libwebp`, `-vf`,
-        `scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`
-      ])
-      .toFormat('webp')
-      .save(out)
-  })
-}
-/**
- * Add WhatsApp JSON Exif Metadata
- * Taken from https://github.com/pedroslopez/whatsapp-web.js/pull/527/files
- * new json made by https://github.com/Skidy89
- * @param {Buffer} webpSticker 
- * @param {String} packname 
- * @param {String} author 
- * @param {String} categories 
- * @param {Object} extra 
- * @returns 
- */
-async function addExif(webpSticker, packname, author, categories = [''], metadata) {
-  const img = new webp.Image();
-  const stickerPackId = 'MYSTIC' + crypto.randomBytes(12).toString('hex').toUpperCase()
-  const json = {
-      "sticker-pack-id": metadata.packId ? metadata.packId : `${stickerPackId}`,
-      "sticker-pack-name": packname ? packname : undefined,
-      "sticker-pack-publisher": author ? author : undefined,
-      "android-app-store-link": metadata.androidAppStoreLink ? metadata.androidAppStoreLink : undefined,
-      "ios-app-store-link": metadata.iosAppStoreLink ? metadata.iosAppStoreLink : undefined,
-      "is-ai-sticker": metadata.isAiSticker ? 1 : undefined,
-      "is-first-party-sticker": metadata.isFirstPartySticker ? 1 : undefined,
-      "accessibility-text": metadata.accessibilityText ? metadata.accessibilityText : undefined,
-      "avatar-sticker-template-id": metadata.templateId ? metadata.templateId : undefined,
-      "is-avatar-sticker": metadata.isAvatarSticker ? 1 : undefined,
-      "sticker-maker-source-type": metadata.stickerMakerSourceType ? metadata.stickerMakerSourceType : undefined,
-      "emojis": categories ? categories : undefined
-  };
-  const exifAttr = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00]);
-  const jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
-  const exif = Buffer.concat([exifAttr, jsonBuffer]);
-  exif.writeUIntLE(jsonBuffer.length, 14, 4);
-  await img.load(webpSticker)
-  img.exif = exif
-  return await img.save(null)
+  });
 }
 
 /**
- * Image/Video to Sticker
- * @param {Buffer} img Image/Video Buffer
- * @param {String} url Image/Video URL
- * @param {...String} 
-*/
+ * Add WhatsApp EXIF metadata to sticker
+ */
+async function addExif(webpSticker, packname, author, categories = [''], metadata = {}) {
+  try {
+    const img = new Image();
+    const stickerPackId = metadata.packId || 'MYSTIC' + crypto.randomBytes(12).toString('hex').toUpperCase();
+    
+    const json = {
+      "sticker-pack-id": stickerPackId,
+      "sticker-pack-name": packname || 'My Pack',
+      "sticker-pack-publisher": author || 'My Bot',
+      "android-app-store-link": metadata.androidAppStoreLink,
+      "ios-app-store-link": metadata.iosAppStoreLink,
+      "emojis": categories.length ? categories : ['']
+    };
+    
+    // Remove undefined values
+    Object.keys(json).forEach(key => json[key] === undefined && delete json[key]);
+    
+    const jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
+    const exifAttr = Buffer.from([
+      0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 
+      0x00, 0x00, 0x16, 0x00, 0x00, 0x00
+    ]);
+    
+    const exif = Buffer.concat([exifAttr, jsonBuffer]);
+    exif.writeUIntLE(jsonBuffer.length, 14, 4);
+    
+    await img.load(webpSticker);
+    img.exif = exif;
+    
+    return await img.save(null);
+  } catch (error) {
+    console.error('AddExif error:', error);
+    // Return original sticker if metadata addition fails
+    return webpSticker;
+  }
+}
+
+/**
+ * Main sticker function with fallbacks
+ */
 async function sticker(img, url, ...args) {
-  let lastError, stiker
-  for (const func of [
-    sticker3, global.support.ffmpeg && sticker6, sticker5,
-    global.support.ffmpeg && global.support.ffmpegWebp && sticker4,
-    global.support.ffmpeg && (global.support.convert || global.support.magick || global.support.gm) && sticker2,
-  ].filter(f => f)) {
+  const methods = [
+    sticker5, // wa-sticker-formatter (most reliable)
+    sticker3,  // API-based
+    sticker6,  // fluent-ffmpeg
+    sticker4,  // ffmpeg
+    sticker2   // fallback
+  ];
+  
+  for (const method of methods) {
     try {
-      stiker = await func(img, url, ...args)
-      if (stiker.includes('html')) continue
-      if (stiker.includes('WEBP')) {
+      const result = await method(img, url, ...args);
+      
+      // Check if result is a valid buffer
+      if (Buffer.isBuffer(result) && result.length > 0) {
         try {
-          return await addExif(stiker, ...args)
-        } catch (e) {
-          console.error(e)
-          return stiker
+          // Try to add metadata if we have packname/author
+          if (args.length >= 2) {
+            return await addExif(result, ...args);
+          }
+          return result;
+        } catch (metadataError) {
+          console.error('Metadata error, returning raw sticker:', metadataError);
+          return result;
         }
       }
-      throw stiker.toString()
-    } catch (err) {
-      lastError = err
-      continue
+    } catch (error) {
+      console.error(`Sticker method ${method.name} failed:`, error);
+      continue;
     }
   }
-  console.error(lastError)
-  return lastError
+  
+  throw new Error('All sticker conversion methods failed');
 }
 
-const support = {
-  ffmpeg: true,
-  ffprobe: true,
-  ffmpegWebp: true,
-  convert: true,
-  magick: false,
-  gm: false,
-  find: false
-}
-
+// Export functions
 export {
   sticker,
   sticker2,
   sticker3,
   sticker4,
   sticker6,
-  addExif,
-  support
-}
+  addExif
+};
