@@ -1,34 +1,79 @@
-/* Codigo copiado de GataBot-MD */
-
 import { sticker } from '../src/libraries/sticker.js';
 import axios from 'axios';
-
+import fs from 'fs';
 
 const handler = async (m, {conn, args, usedPrefix, command}) => {
-    const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.sticker_qc
+    const datas = global;
+    const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje;
+    const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
+    const tradutor = _translate.plugins.sticker_qc;
 
-let text
+    let text;
     if (args.length >= 1) {
         text = args.slice(0).join(" ");
     } else if (m.quoted && m.quoted.text) {
         text = m.quoted.text;
-    } else throw tradutor.text1;
-   if (!text) return m.reply(tradutor.text2);
-    const who = await m.mentionedJid && await await m.mentionedJid[0] ? await await m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender; 
+    } else {
+        throw tradutor.text1;
+    }
+    
+    if (!text) return m.reply(tradutor.text2);
+    
+    const who = m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender; 
     const mentionRegex = new RegExp(`@${who.split('@')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`, 'g');
     const mishi = text.replace(mentionRegex, '');
-   if (mishi.length > 30) return m.reply(tradutor.text3);
-    const pp = await conn.profilePictureUrl(who).catch((_) => 'https://telegra.ph/file/24fa902ead26340f3df2c.png')
-    const nombre = await conn.getName(who)
-    const obj = {"type": "quote", "format": "png", "backgroundColor": "#000000", "width": 512, "height": 768, "scale": 2, "messages": [{"entities": [], "avatar": true, "from": {"id": 1, "name": `${who?.name || nombre}`, "photo": {url: `${pp}`}}, "text": mishi, "replyMessage": {}}]};
-    const json = await axios.post('https://bot.lyo.su/quote/generate', obj, {headers: {'Content-Type': 'application/json'}});
-    const buffer = Buffer.from(json.data.result.image, 'base64');
-   let stiker = await sticker(buffer, false, global.packname, global.author);
-   if (stiker) return conn.sendFile(m.chat, stiker, 'error.webp', '', m);
+    
+    if (mishi.length > 30) return m.reply(tradutor.text3);
+    
+    try {
+        const pp = await conn.profilePictureUrl(who).catch((_) => 'https://telegra.ph/file/24fa902ead26340f3df2c.png');
+        const nombre = await conn.getName(who);
+        
+        const obj = {
+            "type": "quote",
+            "format": "png", 
+            "backgroundColor": "#000000",
+            "width": 512,
+            "height": 768,
+            "scale": 2,
+            "messages": [{
+                "entities": [],
+                "avatar": true,
+                "from": {
+                    "id": 1,
+                    "name": nombre,
+                    "photo": {
+                        "url": pp
+                    }
+                },
+                "text": mishi,
+                "replyMessage": {}
+            }]
+        };
+        
+        const json = await axios.post('https://bot.lyo.su/quote/generate', obj, {
+            headers: {'Content-Type': 'application/json'}
+        });
+        
+        if (!json.data || !json.data.result || !json.data.result.image) {
+            throw new Error('Invalid response from quote API');
+        }
+        
+        const buffer = Buffer.from(json.data.result.image, 'base64');
+        const stiker = await sticker(buffer, false, global.packname, global.author);
+        
+        if (stiker) {
+            return conn.sendFile(m.chat, stiker, 'sticker.webp', '', m);
+        } else {
+            throw new Error('Failed to create sticker');
+        }
+        
+    } catch (error) {
+        console.error('Error in qc command:', error);
+        return m.reply(`Error: ${error.message}`);
+    }
 }
+
 handler.help = ['qc'];
 handler.tags = ['sticker'];
 handler.command = /^(qc)$/i;
