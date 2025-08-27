@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { fileTypeFromBuffer } from 'file-type';
+import fs from 'fs';
 
 // Reddit download function
 async function reddit(url) {
@@ -46,7 +46,7 @@ async function reddit(url) {
         } else if (postData.url) {
             // Image/GIF post
             const url = postData.url;
-            if (url.match(/\.(jpg|jpeg|png|gif|gifv|webp)$/i)) {
+            if (url.match(/\.(jpg|jpeg|png|gif|gifv|webp|mp4)$/i)) {
                 return {
                     type: 'image',
                     url: url.replace('.gifv', '.mp4'), // Convert gifv to mp4
@@ -83,29 +83,33 @@ function isUrl(text) {
 
 // Handler function
 const handler = async (m, { conn, args }) => {
-    const datas = global;
-    const idioma = datas.db.data.users[m.sender].language || 'en';
-    let _translate;
-    
     try {
-        _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
-    } catch (e) {
-        _translate = {
-            plugins: {
-                reddit: {
-                    desc: 'Download content from Reddit posts',
-                    usage: 'Please provide a Reddit URL or reply to a message containing one',
-                    error: 'Failed to download from Reddit. Please check the URL and try again.',
-                    invalid: 'Invalid Reddit URL',
-                    noMedia: 'No downloadable media found in this post'
+        // Default English translations as fallback
+        let tradutor = {
+            desc: 'Download content from Reddit posts',
+            usage: 'Please provide a Reddit URL or reply to a message containing one',
+            error: 'Failed to download from Reddit. Please check the URL and try again.',
+            invalid: 'Invalid Reddit URL',
+            noMedia: 'No downloadable media found in this post'
+        };
+        
+        // Try to load language file if exists
+        try {
+            const datas = global;
+            const idioma = datas.db?.data?.users[m.sender]?.language || 'en';
+            
+            if (fs.existsSync(`./src/languages/${idioma}.json`)) {
+                const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`));
+                // Safely access the reddit plugin translations
+                if (_translate.plugins && _translate.plugins.reddit) {
+                    tradutor = { ...tradutor, ..._translate.plugins.reddit };
                 }
             }
-        };
-    }
-    
-    const tradutor = _translate.plugins.reddit;
+        } catch (e) {
+            console.error('Language file error:', e);
+            // Continue with default translations
+        }
 
-    try {
         let match = args[0] || '';
         if (!match && m.quoted) {
             match = m.quoted.text || '';
@@ -132,8 +136,7 @@ const handler = async (m, { conn, args }) => {
             case 'video':
                 await conn.sendMessage(m.chat, {
                     video: { url: result.url },
-                    caption: `*${result.title}*\n\nPosted by u/${result.author} in r/${result.subreddit}`,
-                    mentions: [m.sender]
+                    caption: `*${result.title}*\n\nPosted by u/${result.author} in r/${result.subreddit}`
                 }, { quoted: m });
                 break;
                 
@@ -141,21 +144,24 @@ const handler = async (m, { conn, args }) => {
                 if (result.url.endsWith('.mp4')) {
                     await conn.sendMessage(m.chat, {
                         video: { url: result.url },
-                        caption: `*${result.title}*\n\nPosted by u/${result.author} in r/${result.subreddit}`,
-                        mentions: [m.sender]
+                        caption: `*${result.title}*\n\nPosted by u/${result.author} in r/${result.subreddit}`
                     }, { quoted: m });
                 } else {
                     await conn.sendMessage(m.chat, {
                         image: { url: result.url },
-                        caption: `*${result.title}*\n\nPosted by u/${result.author} in r/${result.subreddit}`,
-                        mentions: [m.sender]
+                        caption: `*${result.title}*\n\nPosted by u/${result.author} in r/${result.subreddit}`
                     }, { quoted: m });
                 }
                 break;
                 
             case 'text':
+                // Truncate long text
+                const text = result.text.length > 1500 
+                    ? result.text.substring(0, 1500) + '...' 
+                    : result.text;
+                    
                 await conn.sendMessage(m.chat, {
-                    text: `*${result.title}*\n\n${result.text}\n\nPosted by u/${result.author} in r/${result.subreddit}\n\n${result.url}`
+                    text: `*${result.title}*\n\n${text}\n\nPosted by u/${result.author} in r/${result.subreddit}\n\n${result.url}`
                 }, { quoted: m });
                 break;
                 
@@ -165,7 +171,9 @@ const handler = async (m, { conn, args }) => {
         
     } catch (error) {
         console.error('Reddit command error:', error);
-        return m.reply(tradutor.error);
+        // Use safe error message
+        const errorMsg = 'Failed to download from Reddit. Please check the URL and try again.';
+        return m.reply(errorMsg);
     }
 };
 
