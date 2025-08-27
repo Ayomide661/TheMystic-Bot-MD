@@ -54,7 +54,7 @@ const handler = async (m, {conn, args, __dirname, usedPrefix, command}) => {
 
 handler.help = ['effects <effect_name>'];
 handler.tags = ['effects'];
-handler.command = /^(efecto)$/i;
+handler.command = /^(effects)$/i;
 
 export default handler;
 
