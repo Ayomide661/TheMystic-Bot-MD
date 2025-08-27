@@ -137,7 +137,7 @@ const handler = async (m, { conn, usedPrefix, command, text }) => {
 💎 *Rewards:* Win: ${gameConfig.rewards.win} | Draw: ${gameConfig.rewards.draw}
 
 🔗 *Join with:* ${usedPrefix + command} ${text}
-❌ *Delete room:* ${usedPrefix}delttc
+❌ *Delete room:* ${usedPrefix}delttt
 
 ⏰ *Room expires in 5 minutes*
 `.trim();
