@@ -29,7 +29,7 @@ const handler = async (m, { conn, usedPrefix, command, text }) => {
         [room.game.playerX, room.game.playerO].includes(m.sender)
     );
     
-    if (userInGame) throw `🚫 *You are already in a game!* Use *${usedPrefix}delttc* to leave your current game.`;
+    if (userInGame) throw `🚫 *You are already in a game!* Use *${usedPrefix}delttt* to leave your current game.`;
 
     // Check maximum concurrent games
     const activeGames = Object.values(conn.game).filter(room => room.id.startsWith('tictactoe'));
@@ -151,8 +151,8 @@ const handler = async (m, { conn, usedPrefix, command, text }) => {
                 externalAdReply: {
                     title: '🎯 TIC TAC TOE CHALLENGE',
                     body: `Join ${text} room!`,
-                    thumbnailUrl: 'https://cope-cdnmed.agilecontent.com/resources/jpg/8/9/1590140413198.jpg',
-                    sourceUrl: 'https://whatsapp.com/channel/0029Va9A8bA0pEFe3kDlz63o',
+                    thumbnailUrl: 'https://i.postimg.cc/wT5WgHhr/images.jpg',
+                    sourceUrl: 'https://whatsapp.com/channel/0029VbAEvHAA2pLJa8FLK00e',
                     mediaType: 1,
                     renderLargerThumbnail: true
                 }
