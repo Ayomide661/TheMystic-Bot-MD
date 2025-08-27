@@ -29,7 +29,7 @@ const handler = async (m, { conn, usedPrefix, command, text }) => {
         [room.game.playerX, room.game.playerO].includes(m.sender)
     );
     
-    if (userInGame) throw `🚫 *You are already in a game!* Use *${usedPrefix}delttc* to leave your current game.`;
+    if (userInGame) throw `🚫 *You are already in a game!* Use *${usedPrefix}delttt* to leave your current game.`;
 
     // Check maximum concurrent games
     const activeGames = Object.values(conn.game).filter(room => room.id.startsWith('tictactoe'));
@@ -145,7 +145,7 @@ const handler = async (m, { conn, usedPrefix, command, text }) => {
 💎 *Rewards:* Win: ${gameConfig.rewards.win} | Draw: ${gameConfig.rewards.draw}
 
 🔗 *Join with:* ${usedPrefix + command} ${text}
-❌ *Delete room:* ${usedPrefix}delttc
+❌ *Delete room:* ${usedPrefix}delttt
 
 ⏰ *Room expires in 5 minutes*
 `.trim();
