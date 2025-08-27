@@ -8,7 +8,7 @@ function handler(m, { groupMetadata, command, conn, text, usedPrefix }) {
   const _translate = JSON.parse(fs.readFileSync(`./src/languages/${idioma}.json`))
   const tradutor = _translate.plugins.fun_top
 
-  if (!text) throw `${tradutor.texto1}`;
+  if (!text) throw `${tradutor.text1}`;
   const ps = groupMetadata.participants.map((v) => v.jid);
   const a = ps.getRandom();
   const b = ps.getRandom();
