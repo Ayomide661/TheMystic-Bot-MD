@@ -29,7 +29,7 @@ const handler = async (m, { conn, usedPrefix, command, text }) => {
         [room.game.playerX, room.game.playerO].includes(m.sender)
     );
     
-    if (userInGame) throw `🚫 *You are already in a game!* Use *${usedPrefix}delttt* to leave your current game.`;
+    if (userInGame) throw `🚫 *You are already in a game!* Use *${usedPrefix}delttc* to leave your current game.`;
 
     // Check maximum concurrent games
     const activeGames = Object.values(conn.game).filter(room => room.id.startsWith('tictactoe'));
@@ -69,28 +69,33 @@ const handler = async (m, { conn, usedPrefix, command, text }) => {
             9: '9️⃣',
         }[v]));
 
+        // Get player names without @
+        const playerXName = room.game.playerX.split('@')[0];
+        const playerOName = room.game.playerO.split('@')[0];
+        const currentPlayerName = room.game.currentTurn.split('@')[0];
+
         const gameInfo = `
 🎮 *TIC TAC TOE BATTLE* 🎮
 
 ⚡ *Room:* ${room.name}
 ⏰ *Created:* ${new Date(room.createdAt).toLocaleTimeString()}
 
-❌ *Player X:* @${room.game.playerX.split('@')[0]}
-🔵 *Player O:* @${room.game.playerO.split('@')[0]}
+❌ *Player X:* ${playerXName}
+🔵 *Player O:* ${playerOName}
 
 📊 *Board:*
         ${arr.slice(0, 3).join('')}
         ${arr.slice(3, 6).join('')}
         ${arr.slice(6).join('')}
 
-🎯 *Turn:* @${room.game.currentTurn.split('@')[0]}
+🎯 *Turn:* ${currentPlayerName}
 
 💡 *How to play:* Reply with number (1-9) to place your mark!
 ⏰ *Timeout:* 5 minutes
 `.trim();
 
         // Send to both players
-        const mentions = conn.parseMention(gameInfo);
+        const mentions = [room.game.playerX, room.game.playerO];
         if (room.x !== room.o) {
             await conn.sendMessage(room.x, { 
                 text: gameInfo, 
@@ -126,28 +131,29 @@ const handler = async (m, { conn, usedPrefix, command, text }) => {
             }
         };
 
+        // Get host name without @
+        const hostName = conn.getName(m.sender) || m.sender.split('@')[0];
+
         const roomInfo = `
 🎮 *NEW TIC TAC TOE ROOM CREATED* 🎮
 
 ⚡ *Room Name:* ${text}
-👤 *Host:* @${m.sender.split('@')[0]}
+👤 *Host:* ${hostName}
 ⏰ *Created:* ${new Date().toLocaleTimeString()}
 
 👥 *Waiting for opponent...*
 💎 *Rewards:* Win: ${gameConfig.rewards.win} | Draw: ${gameConfig.rewards.draw}
 
 🔗 *Join with:* ${usedPrefix + command} ${text}
-❌ *Delete room:* ${usedPrefix}delttt
+❌ *Delete room:* ${usedPrefix}delttc
 
 ⏰ *Room expires in 5 minutes*
 `.trim();
 
-        // Send room creation message with button
+        // Send room creation message
         await conn.sendMessage(m.chat, {
             text: roomInfo,
-            mentions: conn.parseMention(roomInfo),
             contextInfo: {
-                mentionedJid: conn.parseMention(roomInfo),
                 externalAdReply: {
                     title: '🎯 TIC TAC TOE CHALLENGE',
                     body: `Join ${text} room!`,
@@ -172,13 +178,6 @@ const handler = async (m, { conn, usedPrefix, command, text }) => {
         }, gameConfig.timeout);
     }
 };
-
-// Helper function to format time
-function formatTime(ms) {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}m ${seconds}s`;
-}
 
 handler.help = ['ttc <room-name>'];
 handler.tags = ['game'];
