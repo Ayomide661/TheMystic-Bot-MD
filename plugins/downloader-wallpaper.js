@@ -7,27 +7,27 @@ const handler = async (m, {conn, text, usedPrefix, command}) => {
   const translator = _translate.plugins.downloader_wallpaper;
 
   // Validate input
-  if (!text) throw `${translator.texto1} ${usedPrefix + command} Minecraft*`;
-  
+  if (!text) throw `${translator.text1} ${usedPrefix + command} Minecraft*`;
+
   try {
     // Fetch wallpapers
     const wallpapers = await wallpaper(text);
-    
+
     // Select random wallpaper
     const randomWallpaper = wallpapers[Math.floor(Math.random() * wallpapers.length)];
-    
+
     // Send result
     await conn.sendFile(
       m.chat,
       randomWallpaper,
       'wallpaper.jpg', 
-      `${translator.texto2} ${text}*`,
+      `${translator.text2} ${text}*`,
       m
     );
-    
+
   } catch (error) {
     console.error('Wallpaper error:', error);
-    await m.reply(translator.texto3 || 'Failed to fetch wallpapers');
+    await m.reply(translator.text3 || 'Failed to fetch wallpapers');
   }
 };
 
