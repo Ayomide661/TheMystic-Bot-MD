@@ -3,14 +3,9 @@ import {join} from 'path';
 import {exec} from 'child_process';
 
 const handler = async (m, {conn, args, __dirname, usedPrefix, command}) => {
-  const datas = global
-  const idioma = datas.db.data.users[m.sender].language || global.defaultLenguaje
-  const _translate = JSON.parse(readFileSync(`./src/languages/${idioma}.json`))
-  const tradutor = _translate.plugins.audio_efectos
-  
   try {
     if (!args[0]) {
-      return conn.reply(m.chat, `${tradutor.text1}\n\n*${usedPrefix}efecto bass*\n*${usedPrefix}efecto blown*\n*${usedPrefix}efecto deep*\n*${usedPrefix}efecto earrape*\n*${usedPrefix}efecto fast*\n*${usedPrefix}efecto fat*\n*${usedPrefix}efecto nightcore*\n*${usedPrefix}efecto reverse*\n*${usedPrefix}efecto robot*\n*${usedPrefix}efecto slow*\n*${usedPrefix}efecto smooth*\n*${usedPrefix}efecto tupai*`, m);
+      return conn.reply(m.chat, `*Please specify an effect!*\n\nAvailable effects:\n• *${usedPrefix}effect bass*\n• *${usedPrefix}effect blown*\n• *${usedPrefix}effect deep*\n• *${usedPrefix}effect earrape*\n• *${usedPrefix}effect fast*\n• *${usedPrefix}effect fat*\n• *${usedPrefix}effect nightcore*\n• *${usedPrefix}effect reverse*\n• *${usedPrefix}effect robot*\n• *${usedPrefix}effect slow*\n• *${usedPrefix}effect smooth*\n• *${usedPrefix}effect chipmunk*`, m);
     }
     
     const q = m.quoted ? m.quoted : m;
@@ -32,29 +27,38 @@ const handler = async (m, {conn, args, __dirname, usedPrefix, command}) => {
     else if (/smooth/.test(effect)) set = '-filter:v "minterpolate=\'mi_mode=mci:mc_mode=aobmc:vsbmc=1:fps=120\'"';
     else if (/tupai|squirrel|chipmunk/.test(effect)) set = '-filter:a "atempo=0.5,asetrate=65100"';
     else {
-      return conn.reply(m.chat, `${tradutor.text2}\n\n*${usedPrefix}efecto bass*\n*${usedPrefix}efecto blown*\n*${usedPrefix}efecto deep*\n*${usedPrefix}efecto earrape*\n*${usedPrefix}efecto fast*\n*${usedPrefix}efecto fat*\n*${usedPrefix}efecto nightcore*\n*${usedPrefix}efecto reverse*\n*${usedPrefix}efecto robot*\n*${usedPrefix}efecto slow*\n*${usedPrefix}efecto smooth*\n*${usedPrefix}efecto tupai*`, m);
+      return conn.reply(m.chat, `*Invalid effect!*\n\nAvailable effects:\n• *${usedPrefix}effect bass*\n• *${usedPrefix}effect blown*\n• *${usedPrefix}effect deep*\n• *${usedPrefix}effect earrape*\n• *${usedPrefix}effect fast*\n• *${usedPrefix}effect fat*\n• *${usedPrefix}effect nightcore*\n• *${usedPrefix}effect reverse*\n• *${usedPrefix}effect robot*\n• *${usedPrefix}effect slow*\n• *${usedPrefix}effect smooth*\n• *${usedPrefix}effect chipmunk*`, m);
     }
 
     if (/audio/.test(mime)) {
       const ran = getRandom('.mp3');
       const filename = join(__dirname, '../src/tmp/' + ran);
       const media = await q.download(true);
+      
+      conn.reply(m.chat, '*Applying audio effect...*', m);
+      
       exec(`ffmpeg -i ${media} ${set} ${filename}`, async (err, stderr, stdout) => {
         await unlinkSync(media);
-        if (err) throw `_*Error!*_`;
+        if (err) {
+          await unlinkSync(filename);
+          throw '*Error processing audio!*';
+        }
+        
         const buff = await readFileSync(filename);
-        conn.sendMessage(m.chat, {audio: buff, filename: ran }, {quoted: m});
+        conn.sendMessage(m.chat, {audio: buff, filename: ran, mimetype: 'audio/mpeg'}, {quoted: m});
         await unlinkSync(filename);
       });
-    } else throw `${tradutor.text3} ${usedPrefix + command}*`;
+    } else {
+      throw `*Please reply to an audio message!*\n\nExample: *${usedPrefix}effect bass* (reply to an audio)`;
+    }
   } catch (e) {
     throw e;
   }
 };
 
-handler.help = ['effects <effect_name>'];
-handler.tags = ['effects'];
-handler.command = /^(effects)$/i;
+handler.help = ['effect <effect_name>'];
+handler.tags = ['audio'];
+handler.command = /^(effect)$/i;
 
 export default handler;
 
