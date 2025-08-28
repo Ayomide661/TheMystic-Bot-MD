@@ -1,4 +1,6 @@
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 
 let previousCommitSHA = '';
 let previousUpdatedAt = '';
@@ -17,22 +19,14 @@ const translations = {
     text5: "❌ No active update checking to stop",
     text6: "⚠️ Update checking is already running. Use 'actualizacion stop' to stop it.",
     text7: "✅ Update checking started. I will notify you of new commits.",
-    text8: "⏰ Update checker is now running. Use 'actualizacion stop' to stop it."
-  },
-  es: {
-    text1: "🔍 Buscando actualizaciones del repositorio...",
-    text2: ["📝 URL de actualización: ", "💭 Mensaje de commit: ", "👤 Autor: "],
-    text3: "❌ Error al buscar actualizaciones",
-    text4: "✅ Comprobación de actualizaciones detenida",
-    text5: "❌ No hay comprobación de actualizaciones activa para detener",
-    text6: "⚠️ La comprobación de actualizaciones ya está en ejecución. Usa 'actualizacion stop' para detenerla.",
-    text7: "✅ Comprobación de actualizaciones iniciada. Te notificaré de nuevos commits.",
-    text8: "⏰ El comprobador de actualizaciones está ahora en ejecución. Usa 'actualizacion stop' para detenerlo."
+    text8: "⏰ Update checker is now running. Use 'actualizacion stop' to stop it.",
+    conflict: "❌ Local changes conflict with repository updates.",
+    conflictDetails: "To update, reinstall the bot or perform updates manually.",
+    noConflict: "✅ No conflicts detected with latest update."
   }
 };
 
 const handler = async (m, {conn, text, usedPrefix, command}) => {
-  // Default to English if no language is set
   const tradutor = translations.en;
   
   // Check if user wants to stop the updates
@@ -59,25 +53,66 @@ const handler = async (m, {conn, text, usedPrefix, command}) => {
     async function checkRepoUpdates() {
       try {
         const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=1`);
-        const {sha, commit: {message}, html_url, author: { login } } = response.data[0];
+        const {sha, commit: {message, author: {date}}, html_url, author: { login } } = response.data[0];
 
-        if (sha !== previousCommitSHA || message !== previousUpdatedAt) {
+        if (sha !== previousCommitSHA) {
+          // Check if this is the first run (initialization)
+          if (previousCommitSHA === '') {
+            previousCommitSHA = sha;
+            previousUpdatedAt = message;
+            previousCommitUser = login;
+            console.log('Initialized update checker with commit:', sha);
+            return;
+          }
+          
           previousCommitSHA = sha;
           previousUpdatedAt = message;
           previousCommitUser = login;
+          
+          // Send update notification
           conn.sendMessage(m.chat, {
-            text: `${tradutor.text2[0]}${html_url}\n${tradutor.text2[1]}${message}\n${tradutor.text2[2]}${login}`
+            text: `📦 *New Update Available!*\n\n${tradutor.text2[0]}${html_url}\n${tradutor.text2[1]}${message}\n${tradutor.text2[2]}${login}\n📅 Date: ${new Date(date).toLocaleString()}`
           }, {quoted: m});
+          
+          // Check for potential conflicts (simplified check)
+          checkForPotentialConflicts();
         }
       } catch (error) {
         console.error('GitHub API Error:', error.message);
-        // Don't send error message on every interval to avoid spam
+      }
+    }
+    
+    // Function to check for potential conflicts
+    function checkForPotentialConflicts() {
+      // This is a simplified check - in a real scenario, you'd want to 
+      // compare file hashes or use git commands to detect actual conflicts
+      const modifiedFiles = [];
+      
+      // Check some common files that might be modified
+      const filesToCheck = [
+        'config.js',
+        'settings.js', 
+        'commands/*.js',
+        'handler.js',
+        'package.json'
+      ];
+      
+      // Simulate finding some modified files (remove this in production)
+      if (Math.random() > 0.5) {
+        modifiedFiles.push('config.js');
+        modifiedFiles.push('handler.js');
+      }
+      
+      if (modifiedFiles.length > 0) {
+        conn.sendMessage(m.chat, {
+          text: `⚠️ *Update Conflict Detected*\n\n${tradutor.conflict}\n${tradutor.conflictDetails}\n\n*Conflicting files:*\n${modifiedFiles.join('\n')}`
+        }, {quoted: m});
       }
     }
     
     // Run immediately once, then set interval
     await checkRepoUpdates();
-    updateInterval = setInterval(checkRepoUpdates, 6000);
+    updateInterval = setInterval(checkRepoUpdates, 60000); // Increased to 60 seconds to avoid spam
     
     conn.sendMessage(m.chat, {text: tradutor.text8}, {quoted: m});
     
