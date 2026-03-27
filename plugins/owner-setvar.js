@@ -20,7 +20,7 @@ const ensureConfigIgnored = async () => {
     if (!gitignoreContent.includes('config.js')) {
       gitignoreContent += '\nconfig.js\n';
       await fs.promises.writeFile(gitignorePath, gitignoreContent, 'utf-8');
-      console.log('✅ config.js añadido a .gitignore');
+      console.log('✅ config.js added to .gitignore');
     }
   } catch (error) {
     throw new Error(`❌ .gitignore ${error.message}`);
