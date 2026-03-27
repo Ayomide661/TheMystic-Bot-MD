@@ -168,12 +168,17 @@ async function createStickerWithAPI(imageBuffer, packname, author) {
   }
 }
 
+const sticker = createSticker;
+const addAudioMetaData = async (audio, title, artist) => audio;
+const addMetaExif = addExif;
+const resizeImage = async (buf) => buf;
+
 export {
   createSticker,
   createStickerWithAPI,
   addExif,
-  sticker: createSticker,
-  addAudioMetaData: async (audio, title, artist) => audio,
-  addMetaExif: addExif,
-  resizeImage: async (buf) => buf
+  sticker,
+  addAudioMetaData,
+  addMetaExif,
+  resizeImage
 };
