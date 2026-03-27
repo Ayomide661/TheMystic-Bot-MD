@@ -4,7 +4,7 @@ import { tmpdir } from 'os';
 import axios from 'axios';
 import fetch from 'node-fetch';
 import NodeID3 from 'node-id3';
-import { v4 as uuidv4 } from 'uuid';
+import pkg from 'uuid'; const { v4: uuidv4 } = pkg;
 const { generateWAMessageFromContent, prepareWAMessageMedia } = (await import("baileys")).default;
 
 const handler = async (m, { conn, args }) => {

@@ -3,7 +3,8 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { spawn } from 'child_process';
 import fetch from 'node-fetch';
-import { Image } from 'node-webpmux';
+import pkg from 'node-webpmux';
+const { Image } = pkg;
 import crypto from 'crypto';
 
 // Simple FFmpeg-based converter
